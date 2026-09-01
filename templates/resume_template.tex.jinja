@@ -1,0 +1,35 @@
+\documentclass[11pt]{article}
+\usepackage[margin=0.5in]{geometry}
+\usepackage{hyperref}
+
+\title{{{ name }}}
+\author{}
+\date{}
+
+\begin{document}
+
+\centering
+\textbf{\LARGE {{ name }}}\\
+{{ email }} | {{ phone }} | {{ location }}
+
+\section*{Professional Summary}
+{{ professional_summary }}
+
+\section*{Experience}
+{% for item in experience %}
+  \subsection*{{{ item.title }}}
+  {{ item.description }}
+{% endfor %}
+
+\section*{Skills}
+{% for skill in skills %}
+  \item {{ skill }}
+{% endfor %}
+
+\section*{Education}
+{% for edu in education %}
+  \subsection*{{{ edu.degree }}}
+  {{ edu.institution }}
+{% endfor %}
+
+\end{document}
