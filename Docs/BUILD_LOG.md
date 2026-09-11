@@ -103,3 +103,11 @@ Model names and endpoints must come from configuration or environment variables,
 
 - `TypedDict` documents the keys and expected value types that travel through one graph execution; it does not create runtime storage.
 - The state is intentionally temporary. The profile file remains the permanent source of truth and is loaded into `candidate_profile` for this run.
+
+### 2026-09-11
+
+- Set up local LangSmith tracing configuration through `.env`.
+- Added `.env.example` as a safe configuration template and `.gitignore` protection for `.env` and `.venv`.
+- Installed `python-dotenv` and `langsmith` in the project virtual environment.
+- Confirmed that configuration loading works and tracing is enabled for the `resume-agent` project.
+- Learned that Python dependencies must be installed in the same environment used to run the project.

@@ -3,6 +3,11 @@ Configuration for model tier settings.
 Handles local/cloud endpoints and model names.
 """
 
+from dotenv import load_dotenv
+
+
+load_dotenv()
+
 # Model configuration
 MODEL_TIER = "local"  # Options: "local", "cloud"
 MODEL_NAME = "gpt-4"
