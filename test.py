@@ -1,16 +1,16 @@
 import asyncio
 from dotenv import load_dotenv
 
-
 load_dotenv()
 
-from nodes.load_profile import load_profile
+from graph import graph
 
 
-state = {
-    "profile_path": "master_profile.json"
-}
+async def main():
+    result = await graph.ainvoke({
+        "profile_path": "master_profile.json"
+    })
+    print(result)
 
-result = asyncio.run(load_profile(state))
 
-print(result)
+asyncio.run(main())
