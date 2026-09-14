@@ -10,7 +10,7 @@ from typing import List, Optional
 
 class JDRequirements(BaseModel):
     """Parsed job description requirements."""
-    job_title: str
+    job_title: Optional[str] =None
     company: Optional[str] =None
     must_have_skills: list[str]=Field(default_factory=list)
     nice_to_have_skills: list[str]=Field(default_factory=list)
