@@ -6,17 +6,18 @@ Extracts requirements and key information from JD.
 import json
 import os
 from dotenv import load_dotenv
-from langchain_ollama import ChatOllama
+from langchain_openai import ChatOpenAI
 
 from schemas.jd_requirements import JDRequirements
 
 load_dotenv()
 
-model = ChatOllama(
-    model=os.getenv("OLLAMA_MODEL", "gemma4:e4b"),
-    base_url=os.getenv("OLLAMA_BASE_URL", "http://127.0.0.1:11434"),
+model = ChatOpenAI(
+    model=os.getenv("GEMMA_MODEL", "gemma-3-4b-q8"),
+    api_key=os.getenv("GEMMA_API_KEY"),
+    base_url=os.getenv("GEMMA_BASE_URL", "http://127.0.0.1:8787/v1"),
     temperature=0.1,
-    format="json",
+    use_responses_api=False,
 )
 
 
