@@ -1,35 +1,46 @@
 \documentclass[11pt]{article}
 \usepackage[margin=0.5in]{geometry}
-\usepackage{hyperref}
+\usepackage[hidelinks]{hyperref}
 
-\title{{{ name }}}
 \author{}
 \date{}
 
 \begin{document}
 
-\centering
-\textbf{\LARGE {{ name }}}\\
-{{ email }} | {{ phone }} | {{ location }}
+\begin{center}
+{\Large {{ personal_info.name }}}\\
+{{ personal_info.email }} | {{ personal_info.phone }} | {{ personal_info.location }}
+\end{center}
 
 \section*{Professional Summary}
-{{ professional_summary }}
+{{ content.professional_summary }}
 
 \section*{Experience}
-{% for item in experience %}
-  \subsection*{{{ item.title }}}
-  {{ item.description }}
+\begin{itemize}
+{% for item in content.experience_section %}
+  \item {{ item }}
 {% endfor %}
+\end{itemize}
 
 \section*{Skills}
-{% for skill in skills %}
+\begin{itemize}
+{% for skill in content.skills_section %}
   \item {{ skill }}
 {% endfor %}
+\end{itemize}
 
 \section*{Education}
-{% for edu in education %}
-  \subsection*{{{ edu.degree }}}
-  {{ edu.institution }}
+\begin{itemize}
+{% for item in content.education_section %}
+  \item {{ item }}
 {% endfor %}
+\end{itemize}
+
+\section*{Certifications}
+\begin{itemize}
+{% for item in content.certifications_section %}
+  \item {{ item }}
+{% endfor %}
+\end{itemize}
 
 \end{document}

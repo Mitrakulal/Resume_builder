@@ -1,13 +1,49 @@
 {
   "personal_info": {
-    "name": "Your Name",
-    "email": "your.email@example.com",
-    "phone": "+1-XXX-XXX-XXXX",
-    "location": "City, State"
+    "name": "Alex Morgan",
+    "email": "alex.morgan@example.com",
+    "phone": "+1-555-014-7823",
+    "location": "Austin, TX"
   },
-  "professional_summary": "Your professional summary here",
-  "experience": [],
-  "education": [],
-  "skills": [],
-  "certifications": []
+  "professional_summary": "Python backend developer with experience building REST APIs, integrating databases, and improving service reliability. Comfortable working with FastAPI, automated testing, Docker, and cloud-based deployment workflows.",
+  "experience": [
+    {
+      "role": "Backend Developer",
+      "company": "Northstar Labs",
+      "dates": "2022 - Present",
+      "description": "Built and maintained backend services for an internal operations platform, designed REST API endpoints, and improved automated test coverage for core workflows.",
+      "skills": ["Python", "FastAPI", "REST APIs", "PostgreSQL", "Docker", "Pytest"]
+    },
+    {
+      "role": "Software Engineer Intern",
+      "company": "Cedar Systems",
+      "dates": "2021 - 2022",
+      "description": "Supported API development and data-processing jobs, fixed production defects, and created documentation for developer workflows.",
+      "skills": ["Python", "Flask", "REST APIs", "SQL", "Git"]
+    }
+  ],
+  "education": [
+    {
+      "degree": "Bachelor of Science in Computer Science",
+      "school": "Lakeview University",
+      "location": "Austin, TX",
+      "year": "2021"
+    }
+  ],
+  "skills": [
+    "Python",
+    "FastAPI",
+    "REST APIs",
+    "Flask",
+    "PostgreSQL",
+    "SQL",
+    "Docker",
+    "Pytest",
+    "Git",
+    "Linux"
+  ],
+  "certifications": [
+    "AWS Certified Cloud Practitioner",
+    "Python Institute Certified Associate in Python Programming"
+  ]
 }
