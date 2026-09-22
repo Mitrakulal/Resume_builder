@@ -52,7 +52,6 @@ resume-agent/
 ├── schemas/                   # candidate_profile, jd_requirements, matched_items, resume_content
 ├── templates/resume_template.tex.jinja
 ├── output/                    # Generated resume.tex / resume.pdf (gitignored)
-├── opencode_proxy.py          # OpenAI-compatible bridge to OpenCode server
 ├── Docs/                      # Spec (resume_agent_spec_v1.md), build log
 └── .env.example               # Copy to .env and fill in keys
 ```
