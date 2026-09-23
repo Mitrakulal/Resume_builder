@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   FileText,
   LayoutDashboard,
@@ -17,7 +17,8 @@ import {
   ShieldCheck,
   UploadCloud,
   FileCheck,
-  Play
+  Play,
+  Check
 } from "lucide-react";
 import {
   INITIAL_PROFILE,
@@ -55,6 +56,52 @@ export const App: React.FC = () => {
   const [rightPaneView, setRightPaneView] = useState<"preview" | "latex" | "history">("preview");
   const [selectedTemplateId, setSelectedTemplateId] = useState("article-standard");
 
+  // Toast feedback
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  // Teal-inspired Selective Bullet Toggle State
+  const initialAvailableBullets = useMemo(() => {
+    return [
+      {
+        id: "b1",
+        text: "Architected high-throughput FastAPI REST API endpoints reducing p95 latency by 35%.",
+        source: "Acme Corp (2022 - Present)",
+        skills: ["FastAPI", "Python", "REST APIs"],
+        active: true,
+      },
+      {
+        id: "b2",
+        text: "Engineered automated Pytest test suites achieving 92% coverage across critical business transactions.",
+        source: "Acme Corp (2022 - Present)",
+        skills: ["Pytest", "Python"],
+        active: true,
+      },
+      {
+        id: "b3",
+        text: "Containerized legacy Python services with Docker and standardized deployment pipelines.",
+        source: "Acme Corp (2022 - Present)",
+        skills: ["Docker", "Linux"],
+        active: true,
+      },
+      {
+        id: "b4",
+        text: "Implemented RESTful endpoints with Flask and optimized PostgreSQL database queries.",
+        source: "Cedar Systems (2021 - 2022)",
+        skills: ["Flask", "PostgreSQL", "SQL"],
+        active: false,
+      },
+      {
+        id: "b5",
+        text: "Built frontend telemetry interfaces using React to visualize real-time microservice health.",
+        source: "Cedar Systems (2021 - 2022)",
+        skills: ["React"],
+        active: false,
+      }
+    ];
+  }, []);
+
+  const [availableBullets, setAvailableBullets] = useState(initialAvailableBullets);
+
   // Applications Tracker State
   const [applications, setApplications] = useState<ApplicationRecord[]>(INITIAL_APPLICATIONS);
 
@@ -66,10 +113,42 @@ export const App: React.FC = () => {
   // Onboarding Modal
   const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
 
-  // Dynamic skill matching
-  const matchedSkills = ["Python", "FastAPI", "REST APIs", "React"];
-  const gapSkills = ["Kubernetes", "AWS"];
-  const matchScore = 82;
+  // Target Skills for this job
+  const targetJobSkills = useMemo(() => {
+    return ["Python", "FastAPI", "REST APIs", "React", "Kubernetes", "AWS"];
+  }, []);
+
+  // Dynamic Skill Math
+  const { matchedSkills, gapSkills, matchScore } = useMemo(() => {
+    const candidateNorm = new Set(profile.skills.map((s) => s.trim().toLowerCase()));
+    const matched = targetJobSkills.filter((s) => candidateNorm.has(s.trim().toLowerCase()));
+    const gaps = targetJobSkills.filter((s) => !candidateNorm.has(s.trim().toLowerCase()));
+    const score = Math.round((matched.length / Math.max(targetJobSkills.length, 1)) * 100);
+    return { matchedSkills: matched, gapSkills: gaps, matchScore: score };
+  }, [profile.skills, targetJobSkills]);
+
+  // Active bullets rendered in document
+  const activeBullets = useMemo(() => {
+    return availableBullets.filter((b) => b.active).map((b) => b.text);
+  }, [availableBullets]);
+
+  // Toggle bullet inclusion
+  const handleToggleBullet = (id: string) => {
+    setAvailableBullets((prev) =>
+      prev.map((b) => (b.id === id ? { ...b, active: !b.active } : b))
+    );
+  };
+
+  // Quick-Add Gap Skill to Profile (Teal Pattern)
+  const handleQuickAddGap = (skill: string) => {
+    if (profile.skills.includes(skill)) return;
+    const updatedSkills = [...profile.skills, skill];
+    setProfile({ ...profile, skills: updatedSkills });
+    
+    // Show Toast
+    setToastMessage(`Added "${skill}" to master profile. Match score increased!`);
+    setTimeout(() => setToastMessage(null), 3500);
+  };
 
   // Run Pipeline Simulation
   const handleRunPipeline = () => {
@@ -86,6 +165,8 @@ export const App: React.FC = () => {
     const advance = () => {
       if (currentIdx >= stages.length) {
         setIsProcessing(false);
+        setToastMessage("Pipeline complete: resume compiled and verified against master profile.");
+        setTimeout(() => setToastMessage(null), 4000);
         return;
       }
 
@@ -107,13 +188,13 @@ export const App: React.FC = () => {
         );
         currentIdx += 1;
         advance();
-      }, 750);
+      }, 700);
     };
 
     advance();
   };
 
-  // Add / remove skill
+  // Add / remove skill from master profile
   const handleAddSkill = () => {
     if (!newSkill.trim() || profile.skills.includes(newSkill.trim())) return;
     setProfile({ ...profile, skills: [...profile.skills, newSkill.trim()] });
@@ -124,6 +205,19 @@ export const App: React.FC = () => {
     setProfile({ ...profile, skills: profile.skills.filter((s) => s !== skill) });
   };
 
+  // Change Application Status (CRM Pattern)
+  const handleCycleAppStatus = (appId: string) => {
+    const statuses: ApplicationRecord["status"][] = ["Draft", "Applied", "Interview", "Offer", "Rejected"];
+    setApplications((prev) =>
+      prev.map((app) => {
+        if (app.id !== appId) return app;
+        const currentIdx = statuses.indexOf(app.status);
+        const nextStatus = statuses[(currentIdx + 1) % statuses.length];
+        return { ...app, status: nextStatus };
+      })
+    );
+  };
+
   // Print/Download
   const handleDownload = () => {
     window.print();
@@ -132,11 +226,19 @@ export const App: React.FC = () => {
   const latexCode = buildLatexDocument(
     profile,
     profile.professional_summary,
-    profile.experience[0]?.bullets || []
+    activeBullets
   );
 
   return (
     <div className="app-shell">
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div className="toast-bar">
+          <Check size={14} color="#60a5fa" />
+          <span>{toastMessage}</span>
+        </div>
+      )}
+
       {/* Sidebar Navigation */}
       <aside className="sidebar">
         <div className="sidebar-header">
@@ -216,7 +318,7 @@ export const App: React.FC = () => {
       {/* Main Viewport */}
       <main className="main-viewport">
         {/* ========================================================================= */}
-        {/* SCREEN 1: TAILOR RESUME (Matching User's Reference Screenshot) */}
+        {/* SCREEN 1: TAILOR RESUME (With Teal-inspired interactive selective tools) */}
         {/* ========================================================================= */}
         {activeScreen === "tailor" && (
           <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
@@ -262,7 +364,7 @@ export const App: React.FC = () => {
 
             {/* Two-Pane Workspace */}
             <div className="two-pane-container">
-              {/* Left Pane: Analysis */}
+              {/* Left Pane: Analysis & Selective Bullet Builder */}
               <div className="analysis-pane">
                 {/* Stats row: Match score & Skill gaps */}
                 <div className="stats-grid">
@@ -276,7 +378,7 @@ export const App: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Skills Box */}
+                {/* Skills Box with Teal-Style Quick Add */}
                 <div className="skills-box">
                   <div className="skills-subgroup">
                     <div className="skills-heading">Matched skills</div>
@@ -290,14 +392,70 @@ export const App: React.FC = () => {
                   </div>
 
                   <div className="skills-subgroup">
-                    <div className="skills-heading">Gaps</div>
-                    <div className="badge-row">
-                      {gapSkills.map((skill) => (
-                        <span key={skill} className="badge-gap">
-                          {skill}
-                        </span>
-                      ))}
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <div className="skills-heading">Gaps (Click to add if verified)</div>
+                      <span style={{ fontSize: "0.7rem", color: "var(--text-muted)" }}>+ raises score</span>
                     </div>
+                    <div className="badge-row">
+                      {gapSkills.length === 0 ? (
+                        <span style={{ fontSize: "0.75rem", color: "#22c55e" }}>All target skills matched!</span>
+                      ) : (
+                        gapSkills.map((skill) => (
+                          <button
+                            key={skill}
+                            className="badge-gap-interactive"
+                            onClick={() => handleQuickAddGap(skill)}
+                            title={`Click to add ${skill} to your master profile`}
+                          >
+                            <span>{skill}</span>
+                            <Plus size={11} strokeWidth={2.5} />
+                          </button>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Teal Pattern: Selective Bullet Points Selector */}
+                <div className="selective-bullets-card">
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <div className="skills-heading">Selective achievements ({activeBullets.length} active)</div>
+                    <span style={{ fontSize: "0.7rem", color: "var(--text-muted)" }}>Toggle into resume</span>
+                  </div>
+
+                  <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                    {availableBullets.map((bullet) => (
+                      <div
+                        key={bullet.id}
+                        className={`bullet-item-toggle ${bullet.active ? "active" : ""}`}
+                        onClick={() => handleToggleBullet(bullet.id)}
+                      >
+                        <div className={`bullet-checkbox ${bullet.active ? "checked" : ""}`}>
+                          {bullet.active ? <Check size={11} strokeWidth={3} /> : null}
+                        </div>
+                        <div className="bullet-info">
+                          <div className="bullet-meta-row">
+                            <span className="bullet-provenance-tag">
+                              {bullet.source}
+                            </span>
+                            <div className="badge-row">
+                              {bullet.skills.map((s) => (
+                                <span
+                                  key={s}
+                                  className="badge-matched"
+                                  style={{ fontSize: "0.65rem", padding: "0px 4px" }}
+                                >
+                                  {s}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                          <p style={{ fontSize: "0.78rem", color: "#d4d4d8", lineHeight: 1.4 }}>
+                            {bullet.text}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
 
@@ -352,7 +510,7 @@ export const App: React.FC = () => {
                         </div>
                       </div>
 
-                      {/* EXPERIENCE */}
+                      {/* EXPERIENCE with Dynamic Selective Bullets */}
                       <div className="doc-section">
                         <div className="doc-section-title">
                           <span>EXPERIENCE</span>
@@ -366,7 +524,7 @@ export const App: React.FC = () => {
                             <span>Backend Developer · Acme Corp</span>
                             <span style={{ color: "var(--text-muted)", fontWeight: 400 }}>2022 - Present</span>
                           </div>
-                          {profile.experience[0]?.bullets.map((b, idx) => (
+                          {activeBullets.map((b, idx) => (
                             <div key={idx} className="doc-bullet-text">
                               • {b}
                             </div>
@@ -377,10 +535,11 @@ export const App: React.FC = () => {
                       {/* SKILLS */}
                       <div className="doc-section">
                         <div className="doc-section-title">
-                          <span>SKILLS</span>
+                          <span>SKILLS ({profile.skills.length})</span>
                         </div>
-                        <div className="doc-line-placeholder w-full" style={{ marginBottom: "5px" }} />
-                        <div className="doc-line-placeholder w-75" />
+                        <div style={{ fontSize: "0.76rem", color: "var(--text-secondary)", lineHeight: 1.5 }}>
+                          {profile.skills.join(" • ")}
+                        </div>
                       </div>
 
                       {/* EDUCATION */}
@@ -395,7 +554,7 @@ export const App: React.FC = () => {
 
                     {/* Preview Footer Bar (Matching Screenshot) */}
                     <div className="preview-footer-bar">
-                      <span>Version 3 · 1 page</span>
+                      <span>Version 3 · 1 page · {activeBullets.length} bullets</span>
                       <div className="preview-icon-actions">
                         <button
                           className="icon-button"
@@ -442,7 +601,7 @@ export const App: React.FC = () => {
                       <div style={{ padding: "10px", background: "var(--bg-surface)", borderRadius: "6px", display: "flex", justifyContent: "space-between" }}>
                         <div>
                           <strong>Version 3 (Active)</strong>
-                          <div style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>Target: Acme Corp · 82% match</div>
+                          <div style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>Target: Acme Corp · {matchScore}% match</div>
                         </div>
                         <span style={{ fontSize: "0.75rem", color: "#22c55e" }}>Current</span>
                       </div>
@@ -515,6 +674,7 @@ export const App: React.FC = () => {
                       <th>Company</th>
                       <th>Target role</th>
                       <th>Match score</th>
+                      <th>Status (Click to cycle)</th>
                       <th>Version</th>
                       <th>Date</th>
                       <th>Action</th>
@@ -527,6 +687,20 @@ export const App: React.FC = () => {
                         <td>{app.role}</td>
                         <td>
                           <span className="badge-matched">{app.matchScore}%</span>
+                        </td>
+                        <td>
+                          <button
+                            className={`stepper-pill ${
+                              app.status === "Interview" || app.status === "Offer"
+                                ? "completed"
+                                : "idle"
+                            }`}
+                            style={{ cursor: "pointer" }}
+                            onClick={() => handleCycleAppStatus(app.id)}
+                            title="Click to cycle status: Draft -> Applied -> Interview -> Offer"
+                          >
+                            {app.status}
+                          </button>
                         </td>
                         <td>{app.resumeVersion}</td>
                         <td>{app.date}</td>
@@ -553,7 +727,7 @@ export const App: React.FC = () => {
         )}
 
         {/* ========================================================================= */}
-        {/* SCREEN 3: MASTER PROFILE (Source of Truth) */}
+        {/* SCREEN 3: MASTER PROFILE */}
         {/* ========================================================================= */}
         {activeScreen === "profile" && (
           <div className="screen-scroll-container">
@@ -737,7 +911,7 @@ export const App: React.FC = () => {
         )}
 
         {/* ========================================================================= */}
-        {/* SCREEN 4: APPLICATIONS TRACKER */}
+        {/* SCREEN 4: APPLICATIONS TRACKER (CRM) */}
         {/* ========================================================================= */}
         {activeScreen === "applications" && (
           <div className="screen-scroll-container">
@@ -745,7 +919,7 @@ export const App: React.FC = () => {
               <div>
                 <h2>Applications tracker</h2>
                 <p style={{ color: "var(--text-muted)", fontSize: "0.85rem" }}>
-                  Every tailored resume is tied to a company and role to track progress.
+                  Every tailored resume is tied to a company and role. Click any status pill to update your job search pipeline.
                 </p>
               </div>
               <button
@@ -775,7 +949,7 @@ export const App: React.FC = () => {
                   <tr>
                     <th>Company</th>
                     <th>Role</th>
-                    <th>Status</th>
+                    <th>Status (Click to change)</th>
                     <th>Resume version</th>
                     <th>Match score</th>
                     <th>Date created</th>
@@ -788,15 +962,18 @@ export const App: React.FC = () => {
                       <td><strong>{app.company}</strong></td>
                       <td>{app.role}</td>
                       <td>
-                        <span
+                        <button
                           className={`stepper-pill ${
                             app.status === "Interview" || app.status === "Offer"
                               ? "completed"
                               : "idle"
                           }`}
+                          style={{ cursor: "pointer" }}
+                          onClick={() => handleCycleAppStatus(app.id)}
+                          title="Click to cycle status: Draft -> Applied -> Interview -> Offer"
                         >
                           {app.status}
-                        </span>
+                        </button>
                       </td>
                       <td>{app.resumeVersion}</td>
                       <td>

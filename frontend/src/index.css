@@ -289,7 +289,7 @@ body {
 /* Two-Pane Workspace Layout */
 .two-pane-container {
   display: grid;
-  grid-template-columns: 480px 1fr;
+  grid-template-columns: 500px 1fr;
   flex: 1;
   overflow: hidden;
   height: calc(100vh - 80px);
@@ -391,6 +391,125 @@ body {
   font-weight: 500;
 }
 
+/* Interactive Gap Chip (Teal Pattern) */
+.badge-gap-interactive {
+  background-color: var(--badge-amber-bg);
+  border: 1px dashed var(--badge-amber-border);
+  color: var(--badge-amber-text);
+  padding: 3px 8px;
+  border-radius: var(--radius-xs);
+  font-size: 0.78rem;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.badge-gap-interactive:hover {
+  background-color: #3f2708;
+  border-color: #f59e0b;
+  transform: translateY(-1px);
+}
+
+/* Selective Bullet Items (Teal Pattern) */
+.selective-bullets-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.bullet-item-toggle {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px;
+  background-color: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  transition: border-color 0.15s ease;
+  cursor: pointer;
+}
+
+.bullet-item-toggle:hover {
+  border-color: var(--border-medium);
+}
+
+.bullet-item-toggle.active {
+  border-color: var(--accent-blue-border);
+  background-color: rgba(37, 99, 235, 0.05);
+}
+
+.bullet-checkbox {
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  border: 1px solid var(--border-medium);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--bg-surface);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.bullet-checkbox.checked {
+  background-color: var(--accent-blue);
+  border-color: var(--accent-blue);
+  color: white;
+}
+
+.bullet-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.bullet-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.bullet-provenance-tag {
+  font-size: 0.68rem;
+  color: #60a5fa;
+  background-color: var(--badge-blue-bg);
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-weight: 500;
+}
+
+/* Toast Message */
+.toast-bar {
+  position: fixed;
+  bottom: 24px;
+  right: 28px;
+  background-color: #172554;
+  border: 1px solid #2563eb;
+  color: #bfdbfe;
+  padding: 10px 16px;
+  border-radius: var(--radius-md);
+  font-size: 0.82rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+  z-index: 100;
+  animation: slide-up 0.25s ease;
+}
+
+@keyframes slide-up {
+  from { transform: translateY(12px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
 /* Job Description Card */
 .jd-card {
   background-color: var(--bg-card);
@@ -427,7 +546,7 @@ body {
   overflow-y: auto;
 }
 
-/* Minimalist Document Preview (as shown in reference image) */
+/* Minimalist Document Preview */
 .document-frame {
   width: 100%;
   max-width: 580px;
