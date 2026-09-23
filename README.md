@@ -35,13 +35,17 @@ Shared state (`state.py: ResumeAgentState`): `jd_raw_text`, `profile_path`, `jd_
 | Validation | Pydantic v2 (`schemas/`) |
 | Template rendering | Jinja2 |
 | PDF compilation | MiKTeX `pdflatex` (auto-detected on `PATH` or `%LOCALAPPDATA%\Programs\MiKTeX\...`) |
+| Frontend (SaaS UI) | React 19 + TypeScript + Vite + Lucide Icons + Custom Modern Design System |
 | Tracing | LangSmith (optional, via `.env`) |
-| Runtime | Python 3.10+ |
+| Runtime | Python 3.10+ & Node.js 18+ |
 
 ## Project structure
 
 ```
 resume-agent/
+├── frontend/                  # Modern SaaS React + TypeScript web app
+│   ├── src/                   # Components, state, styles, mock simulation
+│   └── package.json           # Vite build & scripts
 ├── graph.py                   # LangGraph StateGraph wiring (START -> ... -> END)
 ├── state.py                   # ResumeAgentState TypedDict
 ├── config.py                  # Model tier / endpoint config
