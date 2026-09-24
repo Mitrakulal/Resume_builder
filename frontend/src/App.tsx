@@ -1,124 +1,93 @@
 import React, { useState, useMemo } from "react";
 import {
   FileText,
-  LayoutDashboard,
-  Sparkles,
-  User,
   Briefcase,
   Layers,
-  Settings,
-  Download,
-  Code2,
-  History,
-  ChevronDown,
-  ChevronUp,
   Plus,
-  Trash2,
-  ShieldCheck,
-  UploadCloud,
-  FileCheck,
+  ArrowLeft,
+  ChevronDown,
+  ChevronRight,
+  Download,
+  Check,
+  Search,
+  MoreHorizontal,
   Play,
-  Check
+  Pencil,
+  FileCode,
+  Sparkles
 } from "lucide-react";
 import {
-  INITIAL_PROFILE,
-  INITIAL_APPLICATIONS,
-  TEMPLATES_GALLERY,
-  PIPELINE_STAGES,
-  buildLatexDocument,
+  MITRA_PROFILE,
+  INITIAL_RESUMES,
+  buildLatexSource,
 } from "./mockData";
 import type {
   CandidateProfile,
-  ApplicationRecord,
-  PipelineStage,
+  ResumeRecord,
 } from "./mockData";
 
 export const App: React.FC = () => {
-  // Navigation
-  const [activeScreen, setActiveScreen] = useState<
-    "tailor" | "dashboard" | "profile" | "applications" | "templates" | "settings"
-  >("tailor");
+  // Navigation & View State
+  const [currentView, setCurrentView] = useState<"dashboard" | "editor">("editor");
+  const [editorTab, setEditorTab] = useState<"editor" | "matcher" | "latex">("editor");
 
-  // Profile State
-  const [profile, setProfile] = useState<CandidateProfile>(INITIAL_PROFILE);
-  const [newSkill, setNewSkill] = useState("");
-  const [profileTab, setProfileTab] = useState<"form" | "json">("form");
+  // Profile / Resume Document State (Mitra's real data from screenshot)
+  const [profile, setProfile] = useState<CandidateProfile>(MITRA_PROFILE);
+  const [resumes] = useState<ResumeRecord[]>(INITIAL_RESUMES);
+  const [activeResumeId, setActiveResumeId] = useState<string>("res-1");
+  const [docTitle, setDocTitle] = useState("AI/ML Engineer — Production RAG");
 
-  // Tailor Resume State
-  const [jobTitle, setJobTitle] = useState("Backend Developer");
-  const [company, setCompany] = useState("Acme Corp");
+  // Accordion Expand/Collapse States
+  const [expandedSections, setExpandedSections] = useState({
+    contact: false,
+    title: false,
+    summary: false,
+    experience: true,
+    education: false,
+    awards: false,
+    skills: false,
+  });
+
+  // Target Job Description State (for Job Matcher tab)
   const [jdText, setJdText] = useState(
-    "We are looking for a Python backend developer. Required skills include Python and REST APIs. Experience with FastAPI is preferred. Candidates should be comfortable with containerization and writing testable microservices."
+    "We are looking for an AI/ML Engineer experienced in building RAG knowledge systems, vector embeddings, and backend services with Python and FastAPI. Experience with Docker and Linux is preferred."
   );
-  const [isJdExpanded, setIsJdExpanded] = useState(false);
-  const [pipeline, setPipeline] = useState<PipelineStage[]>(PIPELINE_STAGES);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [rightPaneView, setRightPaneView] = useState<"preview" | "latex" | "history">("preview");
-  const [selectedTemplateId, setSelectedTemplateId] = useState("article-standard");
+  const [isPipelineRunning, setIsPipelineRunning] = useState(false);
+  const [pipelineProgress, setPipelineProgress] = useState(100);
 
-  // Toast feedback
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  // Toggle Accordion Section
+  const toggleSection = (section: keyof typeof expandedSections) => {
+    setExpandedSections((prev) => ({ ...prev, [section]: !prev[section] }));
+  };
 
-  // Teal-inspired Selective Bullet Toggle State
-  const initialAvailableBullets = useMemo(() => {
-    return [
-      {
-        id: "b1",
-        text: "Architected high-throughput FastAPI REST API endpoints reducing p95 latency by 35%.",
-        source: "Acme Corp (2022 - Present)",
-        skills: ["FastAPI", "Python", "REST APIs"],
-        active: true,
-      },
-      {
-        id: "b2",
-        text: "Engineered automated Pytest test suites achieving 92% coverage across critical business transactions.",
-        source: "Acme Corp (2022 - Present)",
-        skills: ["Pytest", "Python"],
-        active: true,
-      },
-      {
-        id: "b3",
-        text: "Containerized legacy Python services with Docker and standardized deployment pipelines.",
-        source: "Acme Corp (2022 - Present)",
-        skills: ["Docker", "Linux"],
-        active: true,
-      },
-      {
-        id: "b4",
-        text: "Implemented RESTful endpoints with Flask and optimized PostgreSQL database queries.",
-        source: "Cedar Systems (2021 - 2022)",
-        skills: ["Flask", "PostgreSQL", "SQL"],
-        active: false,
-      },
-      {
-        id: "b5",
-        text: "Built frontend telemetry interfaces using React to visualize real-time microservice health.",
-        source: "Cedar Systems (2021 - 2022)",
-        skills: ["React"],
-        active: false,
-      }
-    ];
-  }, []);
+  // Toggle Bullet Point Checkbox
+  const handleToggleBullet = (bulletId: string) => {
+    setProfile((prev) => ({
+      ...prev,
+      experience: prev.experience.map((exp) => ({
+        ...exp,
+        bullets: exp.bullets.map((b) =>
+          b.id === bulletId ? { ...b, checked: !b.checked } : b
+        ),
+      })),
+    }));
+  };
 
-  const [availableBullets, setAvailableBullets] = useState(initialAvailableBullets);
+  // Toggle Experience Item Checkbox
+  const handleToggleExperience = (expId: string) => {
+    setProfile((prev) => ({
+      ...prev,
+      experience: prev.experience.map((exp) =>
+        exp.id === expId ? { ...exp, checked: !exp.checked } : exp
+      ),
+    }));
+  };
 
-  // Applications Tracker State
-  const [applications, setApplications] = useState<ApplicationRecord[]>(INITIAL_APPLICATIONS);
-
-  // Settings State
-  const [modelTier, setModelTier] = useState("gemma-local");
-  const [endpointUrl, setEndpointUrl] = useState("http://127.0.0.1:8787/v1");
-  const [strictFactuality, setStrictFactuality] = useState(true);
-
-  // Onboarding Modal
-  const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
-
-  // Target Skills for this job
+  // Match Calculation for the target JD
   const targetJobSkills = useMemo(() => {
-    return ["Python", "FastAPI", "REST APIs", "React", "Kubernetes", "AWS"];
+    return ["Python", "FastAPI", "RAG", "ChromaDB", "Vector Embeddings", "Docker", "Kubernetes", "AWS"];
   }, []);
 
-  // Dynamic Skill Math
   const { matchedSkills, gapSkills, matchScore } = useMemo(() => {
     const candidateNorm = new Set(profile.skills.map((s) => s.trim().toLowerCase()));
     const matched = targetJobSkills.filter((s) => candidateNorm.has(s.trim().toLowerCase()));
@@ -127,1047 +96,694 @@ export const App: React.FC = () => {
     return { matchedSkills: matched, gapSkills: gaps, matchScore: score };
   }, [profile.skills, targetJobSkills]);
 
-  // Active bullets rendered in document
-  const activeBullets = useMemo(() => {
-    return availableBullets.filter((b) => b.active).map((b) => b.text);
-  }, [availableBullets]);
-
-  // Toggle bullet inclusion
-  const handleToggleBullet = (id: string) => {
-    setAvailableBullets((prev) =>
-      prev.map((b) => (b.id === id ? { ...b, active: !b.active } : b))
-    );
-  };
-
-  // Quick-Add Gap Skill to Profile (Teal Pattern)
-  const handleQuickAddGap = (skill: string) => {
+  // Quick-Add Gap to Profile
+  const handleAddGapSkill = (skill: string) => {
     if (profile.skills.includes(skill)) return;
-    const updatedSkills = [...profile.skills, skill];
-    setProfile({ ...profile, skills: updatedSkills });
-    
-    // Show Toast
-    setToastMessage(`Added "${skill}" to master profile. Match score increased!`);
-    setTimeout(() => setToastMessage(null), 3500);
+    setProfile((prev) => ({
+      ...prev,
+      skills: [...prev.skills, skill],
+    }));
   };
 
-  // Run Pipeline Simulation
-  const handleRunPipeline = () => {
-    if (isProcessing) return;
-    setIsProcessing(true);
+  // Run LangGraph Simulation
+  const handleRunLangGraph = () => {
+    if (isPipelineRunning) return;
+    setIsPipelineRunning(true);
+    setPipelineProgress(25);
 
-    const stages: PipelineStage["id"][] = ["read_jd", "match", "generate", "compile"];
-    let currentIdx = 0;
-
-    setPipeline((prev) =>
-      prev.map((s) => ({ ...s, status: "idle" }))
-    );
-
-    const advance = () => {
-      if (currentIdx >= stages.length) {
-        setIsProcessing(false);
-        setToastMessage("Pipeline complete: resume compiled and verified against master profile.");
-        setTimeout(() => setToastMessage(null), 4000);
-        return;
-      }
-
-      setPipeline((prev) =>
-        prev.map((s, idx) =>
-          idx === currentIdx
-            ? { ...s, status: "running" }
-            : idx < currentIdx
-            ? { ...s, status: "completed" }
-            : { ...s, status: "idle" }
-        )
-      );
-
+    setTimeout(() => {
+      setPipelineProgress(50);
       setTimeout(() => {
-        setPipeline((prev) =>
-          prev.map((s, idx) =>
-            idx === currentIdx ? { ...s, status: "completed" } : s
-          )
-        );
-        currentIdx += 1;
-        advance();
-      }, 700);
-    };
-
-    advance();
+        setPipelineProgress(75);
+        setTimeout(() => {
+          setPipelineProgress(100);
+          setIsPipelineRunning(false);
+        }, 600);
+      }, 600);
+    }, 600);
   };
 
-  // Add / remove skill from master profile
-  const handleAddSkill = () => {
-    if (!newSkill.trim() || profile.skills.includes(newSkill.trim())) return;
-    setProfile({ ...profile, skills: [...profile.skills, newSkill.trim()] });
-    setNewSkill("");
-  };
-
-  const handleRemoveSkill = (skill: string) => {
-    setProfile({ ...profile, skills: profile.skills.filter((s) => s !== skill) });
-  };
-
-  // Change Application Status (CRM Pattern)
-  const handleCycleAppStatus = (appId: string) => {
-    const statuses: ApplicationRecord["status"][] = ["Draft", "Applied", "Interview", "Offer", "Rejected"];
-    setApplications((prev) =>
-      prev.map((app) => {
-        if (app.id !== appId) return app;
-        const currentIdx = statuses.indexOf(app.status);
-        const nextStatus = statuses[(currentIdx + 1) % statuses.length];
-        return { ...app, status: nextStatus };
-      })
-    );
-  };
-
-  // Print/Download
-  const handleDownload = () => {
+  // Export PDF
+  const handleExportPdf = () => {
     window.print();
   };
 
-  const latexCode = buildLatexDocument(
-    profile,
-    profile.professional_summary,
-    activeBullets
-  );
+  const latexCode = useMemo(() => buildLatexSource(profile), [profile]);
 
   return (
-    <div className="app-shell">
-      {/* Toast Notification */}
-      {toastMessage && (
-        <div className="toast-bar">
-          <Check size={14} color="#60a5fa" />
-          <span>{toastMessage}</span>
-        </div>
-      )}
-
-      {/* Sidebar Navigation */}
-      <aside className="sidebar">
-        <div className="sidebar-header">
-          <div className="brand-icon">
-            <FileText size={16} />
-          </div>
-          <div className="brand-name">
-            Resume<br />Agent
+    <div className="teal-shell">
+      {/* Left Sidebar */}
+      <aside className="teal-sidebar">
+        <div className="sidebar-top">
+          <div className="brand-badge">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+              <polyline points="14 2 14 8 20 8" />
+              <line x1="16" y1="13" x2="8" y2="13" />
+              <line x1="16" y1="17" x2="8" y2="17" />
+            </svg>
+            <span>ResumeAgent</span>
           </div>
         </div>
 
-        <nav className="sidebar-nav">
+        <nav className="sidebar-nav-list">
           <button
-            className={`nav-item ${activeScreen === "dashboard" ? "active" : ""}`}
-            onClick={() => setActiveScreen("dashboard")}
+            className={`sidebar-btn ${currentView === "dashboard" ? "active" : ""}`}
+            onClick={() => setCurrentView("dashboard")}
           >
-            <LayoutDashboard size={15} />
+            <FileText size={16} />
             <span>Dashboard</span>
           </button>
 
           <button
-            className={`nav-item ${activeScreen === "tailor" ? "active" : ""}`}
-            onClick={() => setActiveScreen("tailor")}
+            className={`sidebar-btn ${currentView === "editor" ? "active" : ""}`}
+            onClick={() => setCurrentView("editor")}
           >
-            <Sparkles size={15} />
-            <span>Tailor resume</span>
+            <Briefcase size={16} />
+            <span>Resume Builder</span>
           </button>
 
           <button
-            className={`nav-item ${activeScreen === "profile" ? "active" : ""}`}
-            onClick={() => setActiveScreen("profile")}
+            className="sidebar-btn"
+            onClick={() => {
+              setCurrentView("editor");
+              setEditorTab("matcher");
+            }}
           >
-            <User size={15} />
-            <span>Master profile</span>
+            <Sparkles size={16} />
+            <span>Job Matcher</span>
           </button>
 
           <button
-            className={`nav-item ${activeScreen === "applications" ? "active" : ""}`}
-            onClick={() => setActiveScreen("applications")}
+            className="sidebar-btn"
+            onClick={() => {
+              setCurrentView("editor");
+              setEditorTab("latex");
+            }}
           >
-            <Briefcase size={15} />
-            <span>Applications</span>
+            <FileCode size={16} />
+            <span>LaTeX Source</span>
           </button>
 
           <button
-            className={`nav-item ${activeScreen === "templates" ? "active" : ""}`}
-            onClick={() => setActiveScreen("templates")}
+            className="sidebar-btn"
+            onClick={() => {
+              setCurrentView("editor");
+              toggleSection("skills");
+            }}
           >
-            <Layers size={15} />
-            <span>Templates</span>
-          </button>
-
-          <button
-            className={`nav-item ${activeScreen === "settings" ? "active" : ""}`}
-            onClick={() => setActiveScreen("settings")}
-          >
-            <Settings size={15} />
-            <span>Settings</span>
+            <Layers size={16} />
+            <span>Master Profile</span>
           </button>
         </nav>
 
-        <div className="sidebar-footer">
-          <div className="user-badge">
-            <span className="avatar-dot" />
-            <span>{profile.personal_info.name}</span>
+        <div className="sidebar-bottom-links">
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <div style={{ width: "24px", height: "24px", borderRadius: "50%", background: "#0d9488", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "11px", fontWeight: "700" }}>
+              MK
+            </div>
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              <span style={{ fontSize: "12px", fontWeight: "600", color: "var(--text-main)" }}>Mitra Kulal</span>
+              <span style={{ fontSize: "11px", color: "var(--text-dim)" }}>Candidate</span>
+            </div>
           </div>
-          <button
-            className="icon-button"
-            title="Import profile"
-            onClick={() => setIsOnboardingOpen(true)}
-          >
-            <UploadCloud size={14} />
-          </button>
         </div>
       </aside>
 
-      {/* Main Viewport */}
-      <main className="main-viewport">
+      {/* Main Container */}
+      <main className="teal-main">
         {/* ========================================================================= */}
-        {/* SCREEN 1: TAILOR RESUME (With Teal-inspired interactive selective tools) */}
+        {/* VIEW 1: DASHBOARD (Matching Teal Image 1) */}
         {/* ========================================================================= */}
-        {activeScreen === "tailor" && (
-          <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
-            {/* Top Workspace Header */}
-            <header className="top-header">
-              <div className="header-title-block">
-                <h2>Tailor resume</h2>
-                <div className="header-subtitle">
-                  {jobTitle} · {company}
+        {currentView === "dashboard" && (
+          <div className="dashboard-page">
+            <div className="page-title-row">
+              <h1 className="page-title">Resume Builder</h1>
+            </div>
+
+            {/* Top 3 Action Cards (Only features we provide) */}
+            <div className="actions-grid">
+              <div
+                className="action-card"
+                onClick={() => {
+                  setCurrentView("editor");
+                  setDocTitle("New Untitled Resume");
+                }}
+              >
+                <div className="action-icon-circle" style={{ backgroundColor: "#f0fdf4", color: "#16a34a" }}>
+                  <Plus size={22} strokeWidth={2.5} />
                 </div>
-                {/* Stepper matching screenshot */}
-                <div className="stepper-bar">
-                  {pipeline.map((stage, idx) => (
-                    <React.Fragment key={stage.id}>
-                      <span className={`stepper-pill ${stage.status}`}>
-                        {stage.label}
-                      </span>
-                      {idx < pipeline.length - 1 && (
-                        <span className="stepper-arrow">&gt;</span>
-                      )}
-                    </React.Fragment>
-                  ))}
-                  <button
-                    className="btn-neutral"
-                    style={{ padding: "2px 8px", fontSize: "0.72rem", marginLeft: "6px" }}
-                    onClick={handleRunPipeline}
-                    disabled={isProcessing}
-                    title="Re-run LangGraph pipeline"
-                  >
-                    <Play size={10} fill="currentColor" />
-                    <span>Run</span>
-                  </button>
+                <span className="action-title">New Resume</span>
+              </div>
+
+              <div
+                className="action-card"
+                onClick={() => {
+                  setCurrentView("editor");
+                  setEditorTab("matcher");
+                }}
+              >
+                <div className="action-icon-circle" style={{ backgroundColor: "#eff6ff", color: "#2563eb" }}>
+                  <Briefcase size={20} />
+                </div>
+                <span className="action-title">Start from job description</span>
+              </div>
+
+              <div
+                className="action-card"
+                onClick={() => {
+                  setCurrentView("editor");
+                  setEditorTab("latex");
+                }}
+              >
+                <div className="action-icon-circle" style={{ backgroundColor: "#fdf2f8", color: "#db2777" }}>
+                  <FileCode size={20} />
+                </div>
+                <span className="action-title">Start from LaTeX template</span>
+              </div>
+            </div>
+
+            {/* Recent Resumes Section */}
+            <div className="recent-section">
+              <div className="recent-header-row">
+                <span className="recent-title">Recent Resumes</span>
+                <div className="search-bar-wrap">
+                  <div className="search-input-box">
+                    <Search size={14} />
+                    <input placeholder="Search Resumes" />
+                  </div>
                 </div>
               </div>
 
-              <div>
-                <button className="btn-neutral" onClick={handleDownload} id="btn-download-pdf">
+              <div className="resumes-grid">
+                {resumes.map((res) => (
+                  <div
+                    key={res.id}
+                    className={`resume-card ${activeResumeId === res.id ? "active" : ""}`}
+                    onClick={() => {
+                      setActiveResumeId(res.id);
+                      setDocTitle(res.title);
+                      setJdText(res.jdText);
+                      setCurrentView("editor");
+                    }}
+                  >
+                    <div className="resume-card-top">
+                      <span className="resume-card-title">{res.title}</span>
+                      <MoreHorizontal size={15} color="#94a3b8" />
+                    </div>
+
+                    <div className="resume-card-meta">
+                      <div className="match-badge-chip">
+                        <span>🎯 Match: {res.matchScore}%</span>
+                      </div>
+                      <span>Edited: {res.lastEdited}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ========================================================================= */}
+        {/* VIEW 2: RESUME BUILDER & WORKSPACE (Matching Teal Image 2) */}
+        {/* ========================================================================= */}
+        {currentView === "editor" && (
+          <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
+            {/* Top Bar with Back Arrow, Document Title, and Export PDF */}
+            <header className="editor-top-nav">
+              <div className="nav-left-group">
+                <button
+                  className="btn-icon-back"
+                  onClick={() => setCurrentView("dashboard")}
+                  title="Back to Resumes"
+                >
+                  <ArrowLeft size={16} />
+                </button>
+                <input
+                  className="doc-editable-title"
+                  value={docTitle}
+                  onChange={(e) => setDocTitle(e.target.value)}
+                />
+              </div>
+
+              <div className="nav-right-group">
+                <button className="btn-export-pdf" onClick={handleExportPdf}>
                   <Download size={14} />
-                  <span>Download PDF</span>
+                  <span>Export PDF</span>
                 </button>
               </div>
             </header>
 
-            {/* Two-Pane Workspace */}
-            <div className="two-pane-container">
-              {/* Left Pane: Analysis & Selective Bullet Builder */}
-              <div className="analysis-pane">
-                {/* Stats row: Match score & Skill gaps */}
-                <div className="stats-grid">
-                  <div className="stat-box">
-                    <div className="stat-label">Match score</div>
-                    <div className="stat-value">{matchScore}%</div>
-                  </div>
-                  <div className="stat-box">
-                    <div className="stat-label">Skill gaps</div>
-                    <div className="stat-value">{gapSkills.length}</div>
-                  </div>
-                </div>
+            {/* Sub-tabs bar: Content Editor | Job Matcher | LaTeX Source */}
+            <div className="sub-tabs-bar">
+              <button
+                className={`sub-tab-btn ${editorTab === "editor" ? "active" : ""}`}
+                onClick={() => setEditorTab("editor")}
+              >
+                <FileText size={14} />
+                <span>Content Editor</span>
+              </button>
 
-                {/* Skills Box with Teal-Style Quick Add */}
-                <div className="skills-box">
-                  <div className="skills-subgroup">
-                    <div className="skills-heading">Matched skills</div>
-                    <div className="badge-row">
-                      {matchedSkills.map((skill) => (
-                        <span key={skill} className="badge-matched">
-                          {skill}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
+              <button
+                className={`sub-tab-btn ${editorTab === "matcher" ? "active" : ""}`}
+                onClick={() => setEditorTab("matcher")}
+              >
+                <Sparkles size={14} />
+                <span>Job Matcher</span>
+                <span className="tab-badge green">{matchScore}%</span>
+              </button>
 
-                  <div className="skills-subgroup">
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                      <div className="skills-heading">Gaps (Click to add if verified)</div>
-                      <span style={{ fontSize: "0.7rem", color: "var(--text-muted)" }}>+ raises score</span>
-                    </div>
-                    <div className="badge-row">
-                      {gapSkills.length === 0 ? (
-                        <span style={{ fontSize: "0.75rem", color: "#22c55e" }}>All target skills matched!</span>
-                      ) : (
-                        gapSkills.map((skill) => (
-                          <button
-                            key={skill}
-                            className="badge-gap-interactive"
-                            onClick={() => handleQuickAddGap(skill)}
-                            title={`Click to add ${skill} to your master profile`}
-                          >
-                            <span>{skill}</span>
-                            <Plus size={11} strokeWidth={2.5} />
-                          </button>
-                        ))
-                      )}
-                    </div>
-                  </div>
-                </div>
+              <button
+                className={`sub-tab-btn ${editorTab === "latex" ? "active" : ""}`}
+                onClick={() => setEditorTab("latex")}
+              >
+                <FileCode size={14} />
+                <span>LaTeX Source</span>
+              </button>
+            </div>
 
-                {/* Teal Pattern: Selective Bullet Points Selector */}
-                <div className="selective-bullets-card">
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <div className="skills-heading">Selective achievements ({activeBullets.length} active)</div>
-                    <span style={{ fontSize: "0.7rem", color: "var(--text-muted)" }}>Toggle into resume</span>
-                  </div>
-
-                  <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                    {availableBullets.map((bullet) => (
-                      <div
-                        key={bullet.id}
-                        className={`bullet-item-toggle ${bullet.active ? "active" : ""}`}
-                        onClick={() => handleToggleBullet(bullet.id)}
-                      >
-                        <div className={`bullet-checkbox ${bullet.active ? "checked" : ""}`}>
-                          {bullet.active ? <Check size={11} strokeWidth={3} /> : null}
+            {/* Split Workspace */}
+            <div className="workspace-two-pane">
+              {/* Left Pane (Accordions & Checkboxes) */}
+              <div className="accordion-column">
+                {editorTab === "editor" && (
+                  <>
+                    {/* Contact Information Accordion */}
+                    <div className="accordion-section">
+                      <div className="accordion-header" onClick={() => toggleSection("contact")}>
+                        <div className="accordion-title-wrap">
+                          {expandedSections.contact ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                          <span>Contact Information</span>
                         </div>
-                        <div className="bullet-info">
-                          <div className="bullet-meta-row">
-                            <span className="bullet-provenance-tag">
-                              {bullet.source}
-                            </span>
-                            <div className="badge-row">
-                              {bullet.skills.map((s) => (
-                                <span
-                                  key={s}
-                                  className="badge-matched"
-                                  style={{ fontSize: "0.65rem", padding: "0px 4px" }}
-                                >
-                                  {s}
-                                </span>
-                              ))}
+                        <div className="accordion-actions">
+                          <Pencil size={13} />
+                        </div>
+                      </div>
+
+                      {expandedSections.contact && (
+                        <div className="accordion-content">
+                          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
+                            <div>
+                              <label style={{ fontSize: "11px", color: "var(--text-dim)" }}>Name</label>
+                              <input
+                                style={{ width: "100%", padding: "5px 8px", border: "1px solid var(--border-subtle)", borderRadius: "4px", fontSize: "12px" }}
+                                value={profile.personal_info.name}
+                                onChange={(e) => setProfile({ ...profile, personal_info: { ...profile.personal_info, name: e.target.value } })}
+                              />
+                            </div>
+                            <div>
+                              <label style={{ fontSize: "11px", color: "var(--text-dim)" }}>Location</label>
+                              <input
+                                style={{ width: "100%", padding: "5px 8px", border: "1px solid var(--border-subtle)", borderRadius: "4px", fontSize: "12px" }}
+                                value={profile.personal_info.location}
+                                onChange={(e) => setProfile({ ...profile, personal_info: { ...profile.personal_info, location: e.target.value } })}
+                              />
                             </div>
                           </div>
-                          <p style={{ fontSize: "0.78rem", color: "#d4d4d8", lineHeight: 1.4 }}>
-                            {bullet.text}
-                          </p>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Job Description Card */}
-                <div className="jd-card">
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <div className="skills-heading">Job description</div>
-                    <button
-                      className="icon-button"
-                      onClick={() => setIsJdExpanded(!isJdExpanded)}
-                    >
-                      {isJdExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-                    </button>
-                  </div>
-
-                  {isJdExpanded ? (
-                    <textarea
-                      value={jdText}
-                      onChange={(e) => setJdText(e.target.value)}
-                      className="form-input"
-                      rows={5}
-                      style={{ fontSize: "0.82rem", resize: "vertical" }}
-                    />
-                  ) : (
-                    <div className="jd-text-preview">
-                      {jdText}
+                      )}
                     </div>
-                  )}
-                </div>
-              </div>
 
-              {/* Right Pane: Document Preview Container */}
-              <div className="preview-pane">
-                {rightPaneView === "preview" && (
-                  <>
-                    <div className="document-frame">
-                      {/* Header */}
-                      <div className="doc-header-block">
-                        <div className="doc-name">{profile.personal_info.name}</div>
-                        <div className="doc-contact">
-                          {profile.personal_info.email} · {profile.personal_info.phone} · {profile.personal_info.github || "github"}
+                    {/* Target Title Accordion */}
+                    <div className="accordion-section">
+                      <div className="accordion-header" onClick={() => toggleSection("title")}>
+                        <div className="accordion-title-wrap">
+                          {expandedSections.title ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                          <span>Target Title</span>
+                        </div>
+                        <div className="accordion-actions">
+                          <Plus size={14} />
                         </div>
                       </div>
 
-                      {/* SUMMARY */}
-                      <div className="doc-section">
-                        <div className="doc-section-title">
-                          <span>SUMMARY</span>
+                      {expandedSections.title && (
+                        <div className="accordion-content">
+                          <input
+                            style={{ width: "100%", padding: "6px 8px", border: "1px solid var(--border-subtle)", borderRadius: "4px", fontSize: "12.5px" }}
+                            value={profile.personal_info.targetTitle || ""}
+                            onChange={(e) => setProfile({ ...profile, personal_info: { ...profile.personal_info, targetTitle: e.target.value } })}
+                          />
                         </div>
-                        <div className="doc-bullet-text" style={{ fontSize: "0.78rem" }}>
-                          {profile.professional_summary}
+                      )}
+                    </div>
+
+                    {/* Professional Summary Accordion */}
+                    <div className="accordion-section">
+                      <div className="accordion-header" onClick={() => toggleSection("summary")}>
+                        <div className="accordion-title-wrap">
+                          {expandedSections.summary ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                          <span>Professional Summary</span>
+                        </div>
+                        <div className="accordion-actions">
+                          <Plus size={14} />
                         </div>
                       </div>
 
-                      {/* EXPERIENCE with Dynamic Selective Bullets */}
-                      <div className="doc-section">
-                        <div className="doc-section-title">
-                          <span>EXPERIENCE</span>
-                          <span className="doc-trust-badge">
-                            <ShieldCheck size={11} style={{ display: "inline", marginRight: "3px" }} />
-                            Grounded in profile
-                          </span>
+                      {expandedSections.summary && (
+                        <div className="accordion-content">
+                          <textarea
+                            style={{ width: "100%", padding: "8px", border: "1px solid var(--border-subtle)", borderRadius: "4px", fontSize: "12px", minHeight: "80px", lineHeight: "1.45" }}
+                            value={profile.professional_summary}
+                            onChange={(e) => setProfile({ ...profile, professional_summary: e.target.value })}
+                          />
                         </div>
-                        <div>
-                          <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.8rem", fontWeight: 600, color: "#fff", marginBottom: "4px" }}>
-                            <span>Backend Developer · Acme Corp</span>
-                            <span style={{ color: "var(--text-muted)", fontWeight: 400 }}>2022 - Present</span>
-                          </div>
-                          {activeBullets.map((b, idx) => (
-                            <div key={idx} className="doc-bullet-text">
-                              • {b}
+                      )}
+                    </div>
+
+                    {/* Work Experience Accordion (EXPANDED by default, matching Image 2) */}
+                    <div className="accordion-section">
+                      <div className="accordion-header" onClick={() => toggleSection("experience")}>
+                        <div className="accordion-title-wrap teal">
+                          {expandedSections.experience ? <ChevronDown size={16} color="#0d9488" /> : <ChevronRight size={16} />}
+                          <span>Work Experience</span>
+                        </div>
+                        <div className="accordion-actions">
+                          <Plus size={14} />
+                          <MoreHorizontal size={14} />
+                        </div>
+                      </div>
+
+                      {expandedSections.experience && (
+                        <div className="accordion-content">
+                          {profile.experience.map((exp) => (
+                            <div key={exp.id} className="experience-block">
+                              {/* Company Checkbox */}
+                              <div
+                                className="company-checkbox-row"
+                                onClick={() => handleToggleExperience(exp.id)}
+                              >
+                                <div className={`teal-checkbox ${exp.checked ? "checked" : ""}`}>
+                                  {exp.checked && <Check size={11} strokeWidth={3} />}
+                                </div>
+                                <span>{exp.company}</span>
+                              </div>
+
+                              {/* Role Checkbox */}
+                              <div className="role-checkbox-row">
+                                <div className={`teal-checkbox ${exp.checked ? "checked" : ""}`}>
+                                  {exp.checked && <Check size={11} strokeWidth={3} />}
+                                </div>
+                                <span>{exp.role}</span>
+                              </div>
+
+                              {/* Dates Checkbox */}
+                              <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "12px", color: "var(--text-muted)", marginLeft: "4px" }}>
+                                <div className={`teal-checkbox ${exp.checked ? "checked" : ""}`}>
+                                  {exp.checked && <Check size={11} strokeWidth={3} />}
+                                </div>
+                                <span>{exp.dates}</span>
+                              </div>
+
+                              {/* Bullets with Checkboxes matching Image 2! */}
+                              <div className="bullets-list">
+                                {exp.bullets.map((b) => (
+                                  <div
+                                    key={b.id}
+                                    className="bullet-check-row"
+                                    onClick={() => handleToggleBullet(b.id)}
+                                  >
+                                    <div className={`teal-checkbox ${b.checked ? "checked" : ""}`}>
+                                      {b.checked && <Check size={11} strokeWidth={3} />}
+                                    </div>
+                                    <span className="bullet-text-label">
+                                      {b.prefix && <strong>{b.prefix} </strong>}
+                                      {b.text}
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
+
+                              <button
+                                style={{
+                                  display: "inline-flex",
+                                  alignItems: "center",
+                                  gap: "5px",
+                                  padding: "5px 10px",
+                                  border: "1px dashed var(--border-medium)",
+                                  background: "transparent",
+                                  borderRadius: "4px",
+                                  fontSize: "12px",
+                                  color: "var(--teal-primary)",
+                                  fontWeight: "600",
+                                  cursor: "pointer",
+                                  width: "fit-content",
+                                  marginTop: "6px"
+                                }}
+                              >
+                                <Plus size={13} />
+                                <span>Add Bullet</span>
+                              </button>
                             </div>
                           ))}
                         </div>
-                      </div>
-
-                      {/* SKILLS */}
-                      <div className="doc-section">
-                        <div className="doc-section-title">
-                          <span>SKILLS ({profile.skills.length})</span>
-                        </div>
-                        <div style={{ fontSize: "0.76rem", color: "var(--text-secondary)", lineHeight: 1.5 }}>
-                          {profile.skills.join(" • ")}
-                        </div>
-                      </div>
-
-                      {/* EDUCATION */}
-                      <div className="doc-section">
-                        <div className="doc-section-title">
-                          <span>EDUCATION</span>
-                        </div>
-                        <div className="doc-line-placeholder w-90" style={{ marginBottom: "5px" }} />
-                        <div className="doc-line-placeholder w-60" />
-                      </div>
+                      )}
                     </div>
 
-                    {/* Preview Footer Bar (Matching Screenshot) */}
-                    <div className="preview-footer-bar">
-                      <span>Version 3 · 1 page · {activeBullets.length} bullets</span>
-                      <div className="preview-icon-actions">
-                        <button
-                          className="icon-button"
-                          title="View LaTeX Source"
-                          onClick={() => setRightPaneView("latex")}
-                        >
-                          <Code2 size={15} />
-                        </button>
-                        <button
-                          className="icon-button"
-                          title="Version History"
-                          onClick={() => setRightPaneView("history")}
-                        >
-                          <History size={15} />
-                        </button>
+                    {/* Education Accordion */}
+                    <div className="accordion-section">
+                      <div className="accordion-header" onClick={() => toggleSection("education")}>
+                        <div className="accordion-title-wrap">
+                          {expandedSections.education ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                          <span>Education</span>
+                        </div>
+                        <div className="accordion-actions">
+                          <Plus size={14} />
+                        </div>
                       </div>
+
+                      {expandedSections.education && (
+                        <div className="accordion-content">
+                          {profile.education.map((edu) => (
+                            <div key={edu.id} style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+                              <strong>{edu.school}</strong>
+                              <span style={{ fontSize: "12px", color: "var(--text-muted)" }}>{edu.degree} · {edu.year}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Skills Accordion */}
+                    <div className="accordion-section">
+                      <div className="accordion-header" onClick={() => toggleSection("skills")}>
+                        <div className="accordion-title-wrap">
+                          {expandedSections.skills ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                          <span>Skills ({profile.skills.length})</span>
+                        </div>
+                        <div className="accordion-actions">
+                          <Plus size={14} />
+                        </div>
+                      </div>
+
+                      {expandedSections.skills && (
+                        <div className="accordion-content">
+                          <div style={{ display: "flex", flexWrap: "wrap", gap: "5px" }}>
+                            {profile.skills.map((s) => (
+                              <span
+                                key={s}
+                                style={{
+                                  background: "#f1f5f9",
+                                  padding: "2px 8px",
+                                  borderRadius: "4px",
+                                  fontSize: "11.5px",
+                                  color: "#334155"
+                                }}
+                              >
+                                {s}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </>
                 )}
 
-                {rightPaneView === "latex" && (
-                  <div className="document-frame" style={{ maxWidth: "680px", maxHeight: "85vh", overflowY: "auto" }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid var(--border-subtle)", paddingBottom: "8px" }}>
-                      <span style={{ fontSize: "0.85rem", fontWeight: 600 }}>output/resume.tex (Compiled by Jinja2)</span>
-                      <button className="btn-neutral" onClick={() => setRightPaneView("preview")}>
-                        Back to preview
-                      </button>
-                    </div>
-                    <pre style={{ fontFamily: "var(--font-mono)", fontSize: "0.78rem", color: "#e4e4e7", whiteSpace: "pre-wrap", marginTop: "10px" }}>
-                      {latexCode}
-                    </pre>
-                  </div>
-                )}
-
-                {rightPaneView === "history" && (
-                  <div className="document-frame" style={{ maxWidth: "580px" }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid var(--border-subtle)", paddingBottom: "8px" }}>
-                      <span style={{ fontSize: "0.85rem", fontWeight: 600 }}>Resume version history</span>
-                      <button className="btn-neutral" onClick={() => setRightPaneView("preview")}>
-                        Back to preview
-                      </button>
-                    </div>
-                    <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginTop: "12px" }}>
-                      <div style={{ padding: "10px", background: "var(--bg-surface)", borderRadius: "6px", display: "flex", justifyContent: "space-between" }}>
+                {/* Job Matcher Tab */}
+                {editorTab === "matcher" && (
+                  <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                    <div style={{ background: "#f0fdfa", border: "1px solid #99f6e4", borderRadius: "6px", padding: "14px" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                         <div>
-                          <strong>Version 3 (Active)</strong>
-                          <div style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>Target: Acme Corp · {matchScore}% match</div>
+                          <div style={{ fontSize: "18px", fontWeight: "700", color: "#0f766e" }}>{matchScore}% Match Score</div>
+                          <div style={{ fontSize: "12px", color: "#115e59" }}>Calculated against target requirements</div>
                         </div>
-                        <span style={{ fontSize: "0.75rem", color: "#22c55e" }}>Current</span>
+                        <button
+                          style={{
+                            background: "#0d9488",
+                            color: "white",
+                            border: "none",
+                            padding: "6px 12px",
+                            borderRadius: "4px",
+                            fontSize: "12px",
+                            fontWeight: "600",
+                            cursor: "pointer",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "5px"
+                          }}
+                          onClick={handleRunLangGraph}
+                          disabled={isPipelineRunning}
+                        >
+                          <Play size={12} fill="currentColor" />
+                          <span>{isPipelineRunning ? "Running..." : "Run LangGraph"}</span>
+                        </button>
                       </div>
-                      <div style={{ padding: "10px", background: "var(--bg-input)", borderRadius: "6px", display: "flex", justifyContent: "space-between" }}>
-                        <div>
-                          <strong>Version 2</strong>
-                          <div style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>Target: Stripe · 78% match</div>
+
+                      {isPipelineRunning && (
+                        <div style={{ width: "100%", height: "4px", background: "#ccfbf1", borderRadius: "2px", marginTop: "10px", overflow: "hidden" }}>
+                          <div style={{ width: `${pipelineProgress}%`, height: "100%", background: "#0d9488", transition: "width 0.4s ease" }} />
                         </div>
-                        <button className="icon-button" style={{ fontSize: "0.75rem" }}>Restore</button>
-                      </div>
-                      <div style={{ padding: "10px", background: "var(--bg-input)", borderRadius: "6px", display: "flex", justifyContent: "space-between" }}>
-                        <div>
-                          <strong>Version 1</strong>
-                          <div style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>Target: Linear · 75% match</div>
-                        </div>
-                        <button className="icon-button" style={{ fontSize: "0.75rem" }}>Restore</button>
-                      </div>
+                      )}
                     </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
 
-        {/* ========================================================================= */}
-        {/* SCREEN 2: DASHBOARD */}
-        {/* ========================================================================= */}
-        {activeScreen === "dashboard" && (
-          <div className="screen-scroll-container">
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <div>
-                <h2>Dashboard</h2>
-                <p style={{ color: "var(--text-muted)", fontSize: "0.85rem" }}>
-                  Overview of your tailored resumes, job applications, and match performance.
-                </p>
-              </div>
-              <button
-                className="btn-primary"
-                onClick={() => setActiveScreen("tailor")}
-              >
-                <Plus size={14} />
-                <span>Tailor new resume</span>
-              </button>
-            </div>
-
-            {/* Metrics Grid */}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px" }}>
-              <div className="stat-box">
-                <div className="stat-label">Total applications</div>
-                <div className="stat-value">{applications.length}</div>
-              </div>
-              <div className="stat-box">
-                <div className="stat-label">Tailored resumes generated</div>
-                <div className="stat-value">6</div>
-              </div>
-              <div className="stat-box">
-                <div className="stat-label">Average role match</div>
-                <div className="stat-value">81.5%</div>
-              </div>
-            </div>
-
-            {/* Recent Resumes Table */}
-            <div className="form-card">
-              <h3 style={{ fontSize: "0.95rem", fontWeight: 600 }}>Recent tailored resumes</h3>
-              <div className="data-table-container">
-                <table className="data-table">
-                  <thead>
-                    <tr>
-                      <th>Company</th>
-                      <th>Target role</th>
-                      <th>Match score</th>
-                      <th>Status (Click to cycle)</th>
-                      <th>Version</th>
-                      <th>Date</th>
-                      <th>Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {applications.map((app) => (
-                      <tr key={app.id}>
-                        <td><strong>{app.company}</strong></td>
-                        <td>{app.role}</td>
-                        <td>
-                          <span className="badge-matched">{app.matchScore}%</span>
-                        </td>
-                        <td>
-                          <button
-                            className={`stepper-pill ${
-                              app.status === "Interview" || app.status === "Offer"
-                                ? "completed"
-                                : "idle"
-                            }`}
-                            style={{ cursor: "pointer" }}
-                            onClick={() => handleCycleAppStatus(app.id)}
-                            title="Click to cycle status: Draft -> Applied -> Interview -> Offer"
-                          >
-                            {app.status}
-                          </button>
-                        </td>
-                        <td>{app.resumeVersion}</td>
-                        <td>{app.date}</td>
-                        <td>
-                          <button
-                            className="btn-neutral"
-                            style={{ padding: "3px 8px", fontSize: "0.74rem" }}
-                            onClick={() => {
-                              setCompany(app.company);
-                              setJobTitle(app.role);
-                              setActiveScreen("tailor");
-                            }}
-                          >
-                            Open workspace
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ========================================================================= */}
-        {/* SCREEN 3: MASTER PROFILE */}
-        {/* ========================================================================= */}
-        {activeScreen === "profile" && (
-          <div className="screen-scroll-container">
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <div>
-                <h2>Master profile</h2>
-                <p style={{ color: "var(--text-muted)", fontSize: "0.85rem" }}>
-                  The single source of truth (`master_profile.json`). The agent only reads from this; it never hallucinates.
-                </p>
-              </div>
-              <div style={{ display: "flex", gap: "8px" }}>
-                <button
-                  className={`btn-neutral ${profileTab === "form" ? "btn-primary" : ""}`}
-                  onClick={() => setProfileTab("form")}
-                >
-                  Structured form
-                </button>
-                <button
-                  className={`btn-neutral ${profileTab === "json" ? "btn-primary" : ""}`}
-                  onClick={() => setProfileTab("json")}
-                >
-                  Raw JSON
-                </button>
-              </div>
-            </div>
-
-            {profileTab === "form" ? (
-              <>
-                {/* Personal Information */}
-                <div className="form-card">
-                  <h3 style={{ fontSize: "0.9rem", fontWeight: 600 }}>Personal information</h3>
-                  <div className="form-grid">
-                    <div className="form-field">
-                      <label className="form-label">Full name</label>
-                      <input
-                        className="form-input"
-                        value={profile.personal_info.name}
-                        onChange={(e) =>
-                          setProfile({
-                            ...profile,
-                            personal_info: { ...profile.personal_info, name: e.target.value }
-                          })
-                        }
+                    <div>
+                      <label style={{ fontSize: "12px", fontWeight: "600", color: "var(--text-main)", display: "block", marginBottom: "4px" }}>
+                        Target Job Description
+                      </label>
+                      <textarea
+                        style={{ width: "100%", padding: "8px", border: "1px solid var(--border-subtle)", borderRadius: "4px", fontSize: "12px", minHeight: "100px", lineHeight: "1.4" }}
+                        value={jdText}
+                        onChange={(e) => setJdText(e.target.value)}
                       />
                     </div>
-                    <div className="form-field">
-                      <label className="form-label">Email</label>
-                      <input
-                        className="form-input"
-                        value={profile.personal_info.email}
-                        onChange={(e) =>
-                          setProfile({
-                            ...profile,
-                            personal_info: { ...profile.personal_info, email: e.target.value }
-                          })
-                        }
-                      />
-                    </div>
-                    <div className="form-field">
-                      <label className="form-label">Phone</label>
-                      <input
-                        className="form-input"
-                        value={profile.personal_info.phone}
-                        onChange={(e) =>
-                          setProfile({
-                            ...profile,
-                            personal_info: { ...profile.personal_info, phone: e.target.value }
-                          })
-                        }
-                      />
-                    </div>
-                    <div className="form-field">
-                      <label className="form-label">Location</label>
-                      <input
-                        className="form-input"
-                        value={profile.personal_info.location}
-                        onChange={(e) =>
-                          setProfile({
-                            ...profile,
-                            personal_info: { ...profile.personal_info, location: e.target.value }
-                          })
-                        }
-                      />
-                    </div>
-                  </div>
-                </div>
 
-                {/* Verified Skills */}
-                <div className="form-card">
-                  <h3 style={{ fontSize: "0.9rem", fontWeight: 600 }}>
-                    Verified skills ({profile.skills.length})
-                  </h3>
-                  <div style={{ display: "flex", gap: "8px", maxWidth: "450px" }}>
-                    <input
-                      className="form-input"
-                      style={{ flex: 1 }}
-                      placeholder="Add a verified skill (e.g. Kubernetes, AWS)..."
-                      value={newSkill}
-                      onChange={(e) => setNewSkill(e.target.value)}
-                      onKeyDown={(e) => e.key === "Enter" && handleAddSkill()}
-                    />
-                    <button className="btn-neutral" onClick={handleAddSkill}>
-                      <Plus size={14} />
-                      <span>Add</span>
-                    </button>
-                  </div>
-                  <div className="badge-row" style={{ marginTop: "8px" }}>
-                    {profile.skills.map((skill) => (
-                      <span
-                        key={skill}
-                        className="badge-matched"
-                        style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
-                      >
-                        <span>{skill}</span>
-                        <Trash2
-                          size={11}
-                          style={{ cursor: "pointer", opacity: 0.7 }}
-                          onClick={() => handleRemoveSkill(skill)}
-                        />
+                    <div>
+                      <span style={{ fontSize: "12px", fontWeight: "600", color: "var(--text-main)", display: "block", marginBottom: "6px" }}>
+                        Matched Skills ({matchedSkills.length})
                       </span>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Experience */}
-                <div className="form-card">
-                  <h3 style={{ fontSize: "0.9rem", fontWeight: 600 }}>Experience history</h3>
-                  {profile.experience.map((exp) => (
-                    <div
-                      key={exp.id}
-                      style={{
-                        padding: "12px",
-                        background: "var(--bg-input)",
-                        borderRadius: "var(--radius-sm)",
-                        border: "1px solid var(--border-subtle)",
-                        marginBottom: "10px"
-                      }}
-                    >
-                      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "6px" }}>
-                        <strong>{exp.role} · {exp.company}</strong>
-                        <span style={{ fontSize: "0.78rem", color: "var(--text-muted)" }}>{exp.dates}</span>
-                      </div>
-                      <p style={{ fontSize: "0.82rem", color: "var(--text-secondary)", marginBottom: "8px" }}>
-                        {exp.description}
-                      </p>
-                      <div className="badge-row">
-                        {exp.skills.map((s) => (
-                          <span key={s} className="badge-matched" style={{ fontSize: "0.7rem", padding: "1px 6px" }}>
-                            {s}
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: "5px" }}>
+                        {matchedSkills.map((s) => (
+                          <span key={s} style={{ background: "#dcfce7", color: "#15803d", padding: "2px 8px", borderRadius: "4px", fontSize: "11px", fontWeight: "600" }}>
+                            ✓ {s}
                           </span>
                         ))}
                       </div>
                     </div>
-                  ))}
-                </div>
-              </>
-            ) : (
-              /* JSON view mapping to master_profile.json */
-              <div className="form-card">
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: "6px", color: "#22c55e", fontSize: "0.82rem" }}>
-                    <FileCheck size={15} />
-                    <span>Valid against CandidateProfile Pydantic schema</span>
-                  </div>
-                </div>
-                <textarea
-                  className="form-input"
-                  style={{ fontFamily: "var(--font-mono)", fontSize: "0.82rem", minHeight: "360px" }}
-                  value={JSON.stringify(profile, null, 2)}
-                  onChange={(e) => {
-                    try {
-                      setProfile(JSON.parse(e.target.value));
-                    } catch {
-                      // ignore parse errors while typing
-                    }
-                  }}
-                />
-              </div>
-            )}
-          </div>
-        )}
 
-        {/* ========================================================================= */}
-        {/* SCREEN 4: APPLICATIONS TRACKER (CRM) */}
-        {/* ========================================================================= */}
-        {activeScreen === "applications" && (
-          <div className="screen-scroll-container">
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <div>
-                <h2>Applications tracker</h2>
-                <p style={{ color: "var(--text-muted)", fontSize: "0.85rem" }}>
-                  Every tailored resume is tied to a company and role. Click any status pill to update your job search pipeline.
-                </p>
-              </div>
-              <button
-                className="btn-primary"
-                onClick={() => {
-                  const newApp: ApplicationRecord = {
-                    id: `app-${Date.now()}`,
-                    company: "New Target Co",
-                    role: "Software Engineer",
-                    status: "Draft",
-                    resumeVersion: `Version ${applications.length + 1}`,
-                    matchScore: 80,
-                    date: new Date().toISOString().split("T")[0],
-                    jobDescription: "Paste new job description here..."
-                  };
-                  setApplications([newApp, ...applications]);
-                }}
-              >
-                <Plus size={14} />
-                <span>Add application</span>
-              </button>
-            </div>
-
-            <div className="data-table-container">
-              <table className="data-table">
-                <thead>
-                  <tr>
-                    <th>Company</th>
-                    <th>Role</th>
-                    <th>Status (Click to change)</th>
-                    <th>Resume version</th>
-                    <th>Match score</th>
-                    <th>Date created</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {applications.map((app) => (
-                    <tr key={app.id}>
-                      <td><strong>{app.company}</strong></td>
-                      <td>{app.role}</td>
-                      <td>
-                        <button
-                          className={`stepper-pill ${
-                            app.status === "Interview" || app.status === "Offer"
-                              ? "completed"
-                              : "idle"
-                          }`}
-                          style={{ cursor: "pointer" }}
-                          onClick={() => handleCycleAppStatus(app.id)}
-                          title="Click to cycle status: Draft -> Applied -> Interview -> Offer"
-                        >
-                          {app.status}
-                        </button>
-                      </td>
-                      <td>{app.resumeVersion}</td>
-                      <td>
-                        <span className="badge-matched">{app.matchScore}%</span>
-                      </td>
-                      <td>{app.date}</td>
-                      <td>
-                        <button
-                          className="btn-neutral"
-                          style={{ padding: "3px 8px", fontSize: "0.75rem" }}
-                          onClick={() => {
-                            setCompany(app.company);
-                            setJobTitle(app.role);
-                            setActiveScreen("tailor");
-                          }}
-                        >
-                          Open
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-
-        {/* ========================================================================= */}
-        {/* SCREEN 5: TEMPLATES GALLERY */}
-        {/* ========================================================================= */}
-        {activeScreen === "templates" && (
-          <div className="screen-scroll-container">
-            <div>
-              <h2>Template gallery</h2>
-              <p style={{ color: "var(--text-muted)", fontSize: "0.85rem" }}>
-                Select Jinja2/LaTeX layouts. All templates adhere strictly to the non-hallucination factuality standard.
-              </p>
-            </div>
-
-            <div className="templates-grid">
-              {TEMPLATES_GALLERY.map((tmpl) => (
-                <div
-                  key={tmpl.id}
-                  className={`template-card ${selectedTemplateId === tmpl.id ? "active" : ""}`}
-                  onClick={() => setSelectedTemplateId(tmpl.id)}
-                >
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>{tmpl.category}</span>
-                    {selectedTemplateId === tmpl.id && (
-                      <span className="badge-matched" style={{ fontSize: "0.7rem", padding: "1px 6px" }}>
-                        Selected
+                    <div>
+                      <span style={{ fontSize: "12px", fontWeight: "600", color: "var(--text-main)", display: "block", marginBottom: "6px" }}>
+                        Missing Keywords / Gaps (Click to add)
                       </span>
-                    )}
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: "5px" }}>
+                        {gapSkills.map((s) => (
+                          <button
+                            key={s}
+                            style={{
+                              background: "#fef3c7",
+                              border: "1px solid #fde68a",
+                              color: "#b45309",
+                              padding: "2px 8px",
+                              borderRadius: "4px",
+                              fontSize: "11px",
+                              fontWeight: "600",
+                              cursor: "pointer"
+                            }}
+                            onClick={() => handleAddGapSkill(s)}
+                          >
+                            + {s}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
                   </div>
+                )}
+
+                {/* LaTeX Source Code Tab */}
+                {editorTab === "latex" && (
                   <div>
-                    <h3 style={{ fontSize: "0.95rem", fontWeight: 600 }}>{tmpl.name}</h3>
-                    <p style={{ fontSize: "0.8rem", color: "var(--text-secondary)", marginTop: "4px" }}>
-                      {tmpl.description}
-                    </p>
+                    <span style={{ fontSize: "12px", fontWeight: "600", color: "var(--text-main)", display: "block", marginBottom: "6px" }}>
+                      output/resume.tex
+                    </span>
+                    <pre style={{ background: "#0f172a", color: "#f8fafc", padding: "12px", borderRadius: "6px", fontSize: "11.5px", fontFamily: "var(--font-mono)", whiteSpace: "pre-wrap", overflowX: "auto" }}>
+                      {latexCode}
+                    </pre>
                   </div>
-                  <div className="badge-row">
-                    {tmpl.tags.map((t) => (
-                      <span key={t} className="badge-matched" style={{ fontSize: "0.68rem" }}>
-                        {t}
-                      </span>
+                )}
+              </div>
+
+              {/* Right Pane (Live Rendered Resume Sheet matching Image 2) */}
+              <div className="preview-column">
+                <div className="sheet-paper">
+                  {/* Name & Contact */}
+                  <div className="sheet-name">{profile.personal_info.name}</div>
+                  <div className="sheet-contact">
+                    {profile.personal_info.location} • {profile.personal_info.phone} • {profile.personal_info.email}
+                  </div>
+
+                  {/* AI Target Title */}
+                  <div className="sheet-target-title">
+                    {profile.personal_info.targetTitle || "AI"}
+                  </div>
+
+                  {/* Professional Summary */}
+                  <div className="sheet-summary">
+                    {profile.professional_summary}
+                  </div>
+
+                  {/* WORK EXPERIENCE */}
+                  <div className="sheet-section-title">WORK EXPERIENCE</div>
+                  {profile.experience
+                    .filter((exp) => exp.checked)
+                    .map((exp) => (
+                      <div key={exp.id} style={{ marginBottom: "10px" }}>
+                        <div className="sheet-exp-header">
+                          <span>{exp.company}</span>
+                          <span style={{ fontWeight: "400", color: "#64748b" }}>{exp.dates}</span>
+                        </div>
+                        <div className="sheet-exp-role">{exp.role}</div>
+
+                        {exp.bullets
+                          .filter((b) => b.checked)
+                          .map((b) => (
+                            <div key={b.id} className="sheet-bullet-item">
+                              {b.prefix && <strong>{b.prefix} </strong>}
+                              {b.text}
+                            </div>
+                          ))}
+                      </div>
                     ))}
+
+                  {/* EDUCATION */}
+                  <div className="sheet-section-title">EDUCATION</div>
+                  {profile.education
+                    .filter((edu) => edu.checked)
+                    .map((edu) => (
+                      <div key={edu.id} style={{ marginBottom: "6px" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", fontSize: "10.5px", fontWeight: "700" }}>
+                          <span>{edu.degree}</span>
+                        </div>
+                        <div style={{ fontSize: "10px", color: "#475569" }}>
+                          {edu.school} • {edu.gpa} • {edu.location} • {edu.year}
+                        </div>
+                      </div>
+                    ))}
+
+                  {/* AWARDS & SCHOLARSHIPS */}
+                  <div className="sheet-section-title">AWARDS & SCHOLARSHIPS</div>
+                  {profile.awards
+                    .filter((aw) => aw.checked)
+                    .map((aw) => (
+                      <div key={aw.id} style={{ display: "flex", justifyContent: "space-between", fontSize: "9.5px", marginBottom: "3px" }}>
+                        <span>
+                          <strong>{aw.title}</strong>, {aw.organization}
+                        </span>
+                        <span style={{ color: "#64748b" }}>{aw.year}</span>
+                      </div>
+                    ))}
+
+                  {/* TECHNICAL SKILLS */}
+                  <div className="sheet-section-title">TECHNICAL SKILLS</div>
+                  <div style={{ fontSize: "9.5px", color: "#334155", lineHeight: "1.4" }}>
+                    {profile.skills.join(" • ")}
                   </div>
                 </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* ========================================================================= */}
-        {/* SCREEN 6: SETTINGS */}
-        {/* ========================================================================= */}
-        {activeScreen === "settings" && (
-          <div className="screen-scroll-container" style={{ maxWidth: "700px" }}>
-            <div>
-              <h2>Settings</h2>
-              <p style={{ color: "var(--text-muted)", fontSize: "0.85rem" }}>
-                Manage model endpoints, LangGraph configurations, and factuality parameters.
-              </p>
-            </div>
-
-            <div className="form-card">
-              <h3 style={{ fontSize: "0.9rem", fontWeight: 600 }}>Model tier & endpoint</h3>
-              <div className="form-field">
-                <label className="form-label">Inference provider</label>
-                <select
-                  className="form-input"
-                  value={modelTier}
-                  onChange={(e) => setModelTier(e.target.value)}
-                >
-                  <option value="gemma-local">Local Gemma-2B (OpenAI compatible proxy)</option>
-                  <option value="openai">OpenAI (GPT-4o via API)</option>
-                  <option value="anthropic">Anthropic (Claude 3.5 Sonnet)</option>
-                </select>
-              </div>
-
-              <div className="form-field">
-                <label className="form-label">Endpoint base URL</label>
-                <input
-                  className="form-input"
-                  value={endpointUrl}
-                  onChange={(e) => setEndpointUrl(e.target.value)}
-                />
-              </div>
-            </div>
-
-            <div className="form-card">
-              <h3 style={{ fontSize: "0.9rem", fontWeight: 600 }}>Trust & factuality guardrails</h3>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <div>
-                  <div style={{ fontWeight: 500, fontSize: "0.85rem" }}>Strict factuality mode</div>
-                  <div style={{ fontSize: "0.78rem", color: "var(--text-muted)" }}>
-                    Hard-constrains generate_content to reject any bullet point containing unverified employers, dates, or metrics.
-                  </div>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={strictFactuality}
-                  onChange={(e) => setStrictFactuality(e.target.checked)}
-                />
               </div>
             </div>
           </div>
         )}
       </main>
-
-      {/* Onboarding / Import Profile Modal */}
-      {isOnboardingOpen && (
-        <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            width: "100vw",
-            height: "100vh",
-            background: "rgba(0,0,0,0.75)",
-            backdropFilter: "blur(4px)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 100
-          }}
-          onClick={() => setIsOnboardingOpen(false)}
-        >
-          <div
-            className="form-card"
-            style={{ width: "100%", maxWidth: "480px" }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <h3 style={{ fontSize: "1rem", fontWeight: 600 }}>Import master profile</h3>
-              <button className="icon-button" onClick={() => setIsOnboardingOpen(false)}>✕</button>
-            </div>
-            <p style={{ fontSize: "0.82rem", color: "var(--text-muted)" }}>
-              Upload an existing resume or LinkedIn archive to populate your structured source of truth.
-            </p>
-            <div
-              style={{
-                border: "1px dashed var(--border-medium)",
-                borderRadius: "var(--radius-sm)",
-                padding: "24px",
-                textAlign: "center",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                gap: "8px",
-                cursor: "pointer"
-              }}
-            >
-              <UploadCloud size={28} color="var(--accent-blue)" />
-              <div style={{ fontSize: "0.85rem", fontWeight: 500 }}>Drop resume PDF or JSON here</div>
-              <div style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>Supports PDF, TXT, JSON</div>
-            </div>
-            <div style={{ display: "flex", justifyContent: "flex-end", gap: "8px", marginTop: "12px" }}>
-              <button className="btn-neutral" onClick={() => setIsOnboardingOpen(false)}>
-                Cancel
-              </button>
-              <button
-                className="btn-primary"
-                onClick={() => {
-                  setIsOnboardingOpen(false);
-                  setActiveScreen("profile");
-                }}
-              >
-                Load profile
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

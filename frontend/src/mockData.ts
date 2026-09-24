@@ -5,293 +5,226 @@ export interface PersonalInfo {
   location: string;
   github?: string;
   linkedin?: string;
+  targetTitle?: string;
 }
 
-export interface CandidateExperience {
+export interface BulletItem {
   id: string;
-  role: string;
+  prefix?: string;
+  text: string;
+  checked: boolean;
+  skills?: string[];
+}
+
+export interface ExperienceItem {
+  id: string;
   company: string;
+  role: string;
   dates: string;
-  description: string;
-  bullets: string[];
-  skills: string[];
-  grounded: boolean;
+  location?: string;
+  checked: boolean;
+  bullets: BulletItem[];
 }
 
-export interface CandidateProject {
-  id: string;
-  name: string;
-  technologies: string[];
-  description: string;
-  link?: string;
-}
-
-export interface CandidateEducation {
+export interface EducationItem {
   id: string;
   degree: string;
   school: string;
   location: string;
+  gpa?: string;
   year: string;
+  checked: boolean;
+}
+
+export interface AwardItem {
+  id: string;
+  title: string;
+  organization: string;
+  year: string;
+  checked: boolean;
 }
 
 export interface CandidateProfile {
   personal_info: PersonalInfo;
   professional_summary: string;
-  experience: CandidateExperience[];
-  projects: CandidateProject[];
+  experience: ExperienceItem[];
+  education: EducationItem[];
+  awards: AwardItem[];
   skills: string[];
-  education: CandidateEducation[];
-  certifications: string[];
 }
 
-export interface ApplicationRecord {
+export interface ResumeRecord {
   id: string;
-  company: string;
-  role: string;
-  status: "Draft" | "Applied" | "Interview" | "Offer" | "Rejected";
-  resumeVersion: string;
+  title: string;
+  targetRole: string;
+  targetCompany: string;
   matchScore: number;
-  date: string;
-  jobDescription: string;
+  lastEdited: string;
+  jdText: string;
 }
 
-export interface ResumeTemplate {
-  id: string;
-  name: string;
-  description: string;
-  category: string;
-  tags: string[];
-  previewClass: string;
-}
-
-export const INITIAL_PROFILE: CandidateProfile = {
+// User's actual profile data from their Teal screenshot
+export const MITRA_PROFILE: CandidateProfile = {
   personal_info: {
-    name: "Mitra",
-    email: "mitra@example.com",
-    phone: "+1 (555) 019-2834",
-    location: "San Francisco, CA",
-    github: "github.com/mitra",
-    linkedin: "linkedin.com/in/mitra",
+    name: "Mitra Kulal",
+    email: "kulalmitra@gmail.com",
+    phone: "9360874181",
+    location: "Udupi, Karnataka",
+    github: "github.com/Mitrakulal",
+    targetTitle: "AI / ML & Backend Engineer",
   },
   professional_summary:
-    "Software engineer with focused experience in Python backend development, REST API design, and asynchronous microservices. Passionate about system performance, test automation, and reliable cloud deployments.",
+    "AI/ML engineering student specialising in agentic systems, retrieval-augmented generation, and local LLM infrastructure. Shipped a production RAG system for a live client. Seeking an AI/ML or backend engineering internship.",
   experience: [
     {
       id: "exp-1",
-      role: "Backend Developer",
-      company: "Acme Corp",
-      dates: "2022 - Present",
-      description: "Designed core backend services and scalable REST APIs for customer-facing applications.",
+      company: "mattrlabs — AI Hardware Studio",
+      role: "AI/ML Engineer, Contract — Production RAG Knowledge Assistant",
+      dates: "01/2026 - Present",
+      location: "Remote",
+      checked: true,
       bullets: [
-        "Architected high-throughput FastAPI REST API endpoints reducing p95 latency by 35%.",
-        "Engineered automated Pytest test suites achieving 92% coverage across critical business transactions.",
-        "Containerized legacy Python services with Docker and standardized deployment pipelines."
+        {
+          id: "b1",
+          prefix: "Deployment:",
+          text: "Shipped a client-facing RAG assistant answering live product, service, and pricing queries.",
+          checked: true,
+          skills: ["RAG", "LLMs", "FastAPI"],
+        },
+        {
+          id: "b2",
+          prefix: "Retrieval:",
+          text: "Built a ChromaDB vector store with section-aware chunking and nomic-embed-text embeddings for source-attributed answers.",
+          checked: true,
+          skills: ["ChromaDB", "Embeddings", "Vector Search"],
+        },
+        {
+          id: "b3",
+          prefix: "Reliability:",
+          text: "Added metadata-based routing and an LLM-judged fallback, replacing hardcoded confidence thresholds.",
+          checked: true,
+          skills: ["Python", "Evaluation", "Routing"],
+        },
+        {
+          id: "b4",
+          prefix: "Infrastructure:",
+          text: "Served via FastAPI, deployed on a Mac Mini behind a secured Cloudflare Tunnel.",
+          checked: true,
+          skills: ["FastAPI", "Cloudflare", "Linux"],
+        },
       ],
-      skills: ["Python", "FastAPI", "REST APIs", "PostgreSQL", "Docker", "Pytest"],
-      grounded: true,
     },
-    {
-      id: "exp-2",
-      role: "Software Engineer",
-      company: "Cedar Systems",
-      dates: "2021 - 2022",
-      description: "Implemented web services and data pipelines for internal telemetry platforms.",
-      bullets: [
-        "Implemented RESTful endpoints with Flask and optimized PostgreSQL queries.",
-        "Built data extraction scripts with SQL and resolved high-priority backend issues."
-      ],
-      skills: ["Python", "Flask", "REST APIs", "SQL", "Git", "React"],
-      grounded: true,
-    }
-  ],
-  projects: [
-    {
-      id: "proj-1",
-      name: "Autonomous Resume Agent",
-      technologies: ["Python", "LangGraph", "FastAPI", "LaTeX"],
-      description: "Deterministic AI resume tailoring system preventing hallucinations via LangGraph pipeline.",
-      link: "github.com/Mitrakulal/Resume_builder"
-    }
-  ],
-  skills: [
-    "Python",
-    "FastAPI",
-    "REST APIs",
-    "React",
-    "PostgreSQL",
-    "Docker",
-    "Pytest",
-    "Flask",
-    "SQL",
-    "Git",
-    "Linux"
   ],
   education: [
     {
       id: "edu-1",
-      degree: "B.S. in Computer Science",
-      school: "University of California",
-      location: "Berkeley, CA",
-      year: "2021"
-    }
+      degree: "B.E. in Artificial Intelligence and Machine Learning",
+      school: "Sahyadri College of Engineering and Management",
+      location: "Mangaluru, Karnataka",
+      gpa: "GPA: 8.75 / 10.0",
+      year: "01/2026",
+      checked: true,
+    },
   ],
-  certifications: [
-    "AWS Certified Cloud Practitioner",
-    "Python Institute Certified Associate"
-  ]
+  awards: [
+    {
+      id: "aw-1",
+      title: "2nd Place, TechSprint 2025 Hackathon",
+      organization: "Google Developer Groups on Campus, SCEM",
+      year: "01/2025",
+      checked: true,
+    },
+    {
+      id: "aw-2",
+      title: "Consolation Award, AARAMBH 2025 entrepreneurship summit",
+      organization: "Incub8, NITK Surathkal",
+      year: "01/2025",
+      checked: true,
+    },
+    {
+      id: "aw-3",
+      title: "12th Nationally, Techfest 2024 robotics competition",
+      organization: "IIT Bombay",
+      year: "01/2024",
+      checked: true,
+    },
+  ],
+  skills: [
+    "Python",
+    "FastAPI",
+    "LangGraph",
+    "RAG",
+    "ChromaDB",
+    "Vector Embeddings",
+    "REST APIs",
+    "Docker",
+    "PostgreSQL",
+    "Linux",
+    "Git",
+  ],
 };
 
-export const INITIAL_APPLICATIONS: ApplicationRecord[] = [
+export const INITIAL_RESUMES: ResumeRecord[] = [
   {
-    id: "app-1",
-    company: "Acme Corp",
-    role: "Backend Developer",
-    status: "Interview",
-    resumeVersion: "Version 3",
+    id: "res-1",
+    title: "AI/ML Engineer — Production RAG",
+    targetRole: "AI/ML Engineer",
+    targetCompany: "mattrlabs",
     matchScore: 82,
-    date: "2026-09-21",
-    jobDescription: "We are looking for a Python backend developer. Required skills include Python and REST APIs. Experience with FastAPI is preferred..."
+    lastEdited: "09/24/2026",
+    jdText:
+      "We are looking for an AI/ML Engineer experienced in building RAG knowledge systems, vector embeddings, and backend services with Python and FastAPI.",
   },
   {
-    id: "app-2",
-    company: "Stripe",
-    role: "Infrastructure Engineer",
-    status: "Applied",
-    resumeVersion: "Version 2",
+    id: "res-2",
+    title: "Python Backend Developer",
+    targetRole: "Backend Developer",
+    targetCompany: "Acme Corp",
     matchScore: 78,
-    date: "2026-09-18",
-    jobDescription: "Seeking an infrastructure engineer proficient in Python, Docker, Linux, and high-availability database architectures..."
+    lastEdited: "09/21/2026",
+    jdText:
+      "Looking for a Python developer proficient in FastAPI, REST APIs, PostgreSQL database schema design, and Docker containerization.",
   },
-  {
-    id: "app-3",
-    company: "Linear",
-    role: "Fullstack Product Engineer",
-    status: "Applied",
-    resumeVersion: "Version 1",
-    matchScore: 75,
-    date: "2026-09-14",
-    jobDescription: "Join Linear to build high-craft software. Requires Python or Node backend with React frontend fluency and clean API design..."
-  },
-  {
-    id: "app-4",
-    company: "Vercel",
-    role: "API Platform Engineer",
-    status: "Offer",
-    resumeVersion: "Version 4",
-    matchScore: 91,
-    date: "2026-09-10",
-    jobDescription: "Looking for an API platform specialist with deep mastery in Python, asynchronous services, and clean developer workflows..."
-  }
 ];
 
-export const TEMPLATES_GALLERY: ResumeTemplate[] = [
-  {
-    id: "article-standard",
-    name: "Classic Article LaTeX",
-    description: "Standard LaTeX article-class layout. Clean serif typography, horizontal section dividers, ATS-optimized.",
-    category: "Academic & Tech",
-    tags: ["ATS-Friendly", "Compact", "pdflatex"],
-    previewClass: "template-classic"
-  },
-  {
-    id: "linear-minimal",
-    name: "Linear Modern",
-    description: "Single-column clean sans-serif layout with subtle section metadata and high readability.",
-    category: "Product & Engineering",
-    tags: ["Minimalist", "Modern", "Single Page"],
-    previewClass: "template-modern"
-  },
-  {
-    id: "executive-slate",
-    name: "Executive Clean",
-    description: "Refined two-tier header with subtle bolding, generous line height, and structured experience blocks.",
-    category: "Senior Roles",
-    tags: ["Executive", "Spacious", "LaTeX"],
-    previewClass: "template-exec"
-  }
-];
-
-export interface PipelineStage {
-  id: "read_jd" | "match" | "generate" | "compile";
-  label: string;
-  status: "idle" | "running" | "completed";
-  durationMs: number;
-  nodeDescription: string;
-}
-
-export const PIPELINE_STAGES: PipelineStage[] = [
-  {
-    id: "read_jd",
-    label: "Read JD",
-    status: "completed",
-    durationMs: 1200,
-    nodeDescription: "Structured output extraction of must-haves, keywords, and job title."
-  },
-  {
-    id: "match",
-    label: "Match",
-    status: "completed",
-    durationMs: 700,
-    nodeDescription: "Deterministic skill overlap set intersection and gap matrix calculation."
-  },
-  {
-    id: "generate",
-    label: "Generate",
-    status: "completed",
-    durationMs: 1800,
-    nodeDescription: "Factually grounded rewrite of experience points without hallucinations."
-  },
-  {
-    id: "compile",
-    label: "Compile",
-    status: "running",
-    durationMs: 1100,
-    nodeDescription: "Jinja2 LaTeX template rendering and pdflatex PDF generation."
-  }
-];
-
-export function buildLatexDocument(profile: CandidateProfile, summary: string, bullets: string[]): string {
+export function buildLatexSource(profile: CandidateProfile): string {
   const p = profile.personal_info;
-  const escapedSummary = summary.replace(/&/g, "\\&").replace(/%/g, "\\%");
-  const escapedBullets = bullets
-    .map((b) => `  \\item ${b.replace(/&/g, "\\&").replace(/%/g, "\\%")}`)
-    .join("\n");
-  const escapedSkills = profile.skills.map((s) => `  \\item ${s.replace(/&/g, "\\&")}`).join("\n");
-  const escapedEdu = profile.education
-    .map((e) => `  \\item ${e.degree} -- ${e.school}, ${e.location} (${e.year})`)
+  const exp = profile.experience.find((e) => e.checked);
+  const activeBullets = exp ? exp.bullets.filter((b) => b.checked) : [];
+
+  const escapedBullets = activeBullets
+    .map((b) => `  \\item ${b.prefix ? `\\textbf{${b.prefix}} ` : ""}${b.text.replace(/&/g, "\\&")}`)
     .join("\n");
 
-  return `\\documentclass[11pt]{article}
+  const edu = profile.education.find((e) => e.checked);
+
+  return `\\documentclass[10pt]{article}
 \\usepackage[margin=0.5in]{geometry}
 \\usepackage[hidelinks]{hyperref}
-
-\\author{}
-\\date{}
 
 \\begin{document}
 
 \\begin{center}
 {\\Large \\textbf{${p.name}}}\\\\
-${p.email} | ${p.phone} | ${p.github || ""}
+${p.location} $\\bullet$ ${p.phone} $\\bullet$ ${p.email}
 \\end{center}
 
 \\section*{SUMMARY}
-${escapedSummary}
+${profile.professional_summary.replace(/&/g, "\\&")}
 
-\\section*{EXPERIENCE}
+\\section*{WORK EXPERIENCE}
+${exp ? `\\textbf{${exp.company}} \\hfill ${exp.dates}\\\\
+\\textit{${exp.role}}\\\\
 \\begin{itemize}
 ${escapedBullets}
-\\end{itemize}
-
-\\section*{SKILLS}
-\\begin{itemize}
-${escapedSkills}
-\\end{itemize}
+\\end{itemize}` : ""}
 
 \\section*{EDUCATION}
-\\begin{itemize}
-${escapedEdu}
-\\end{itemize}
+${edu ? `\\textbf{${edu.school}} \\hfill ${edu.year}\\\\
+${edu.degree} (${edu.gpa || ""})` : ""}
+
+\\section*{SKILLS}
+${profile.skills.join(" $\\bullet$ ")}
 
 \\end{document}`;
 }
