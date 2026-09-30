@@ -1,3 +1,4 @@
+from fastapi import status
 from math import exp
 from ctypes.wintypes import tagRECT
 from test import PROJECT_ROOT
@@ -99,3 +100,66 @@ async def run_pipline_worker(job_id : str, jd_text: str):
         return
 
     event_queue=asyncio.Queue=job["events"]
+
+    initial_state={
+        "jd_raw_text":jd_text,
+        "profile_path":str(PROFILE_PATH),
+    }
+
+    try:
+
+        await event_queue.put({
+            "event":"start",
+            "data":json.dumps({"job_id":job_id,"message":"Starting resume tailoring pipline..."})
+        })
+
+        async for chunk in graph.astream(initial_state):
+            for node_name , node_output in chunk.items():
+                logger.info(f"[{job_id}Node completed:{node_name}]")
+                summary_data ={"node":node_name,"status":"completed"}
+
+                if node_name == "read_jd" and "jd_requirements" in node_output:
+                    reqs = node_output["jd_requirements"]
+                    summary_data["details"] = {
+                        "job_title": getattr(reqs, "job_title", "Unknown"),
+                        "required_skills_count": len(getattr(reqs, "required_skills", [])),
+                    }
+                elif node_name == "match" and "matched_items" in node_output:
+                    matched = node_output["matched_items"]
+                    summary_data["details"] = {
+                        "matched_skills": len(getattr(matched, "matched_skills", [])),
+                        "missing_skills": len(getattr(matched, "missing_skills", [])),
+                    }
+                elif node_name == "compile" and "output_pdf_path" in node_output:
+                    job["pdf_path"] = node_output["output_pdf_path"]
+                    summary_data["pdf_url"] = f"/api/tailor/{job_id}/pdf"
+
+                # send event to the frontend
+                await event_queue.put({
+                    "event":"node_progress",
+                    "data":json.dumps(summary_data),
+                })
+    
+
+        job["status"] = "completed"
+        await event_queue.put({
+            "event":"completed",
+            "data":json.dumps({
+                "job_id":job_id,
+                "status":"success",
+                "pdf_url":f"/api/tailor/{job_id}/pdf",
+                "message":"Resume generation and compilation complete!"
+                })
+        })
+    except Exception as e:
+        logger.exception(f"[{job_id} pipline error : {e}]")
+        job["status"]="failed"
+        await event_queue.put({
+            "event":"error",
+            "data":json.dumps({"job_id":job_id,"error":str(e)})
+        })
+    finally:
+        await event_queue.put(None)
+
+
+@app.post("/api/tailor",response_model=JobStartResponse,tags=["Tailor"])
