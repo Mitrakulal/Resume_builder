@@ -1,3 +1,4 @@
+from pydantic.v1.errors import NoneIsNotAllowedError
 from fastapi import status
 from math import exp
 from ctypes.wintypes import tagRECT
@@ -163,3 +164,38 @@ async def run_pipline_worker(job_id : str, jd_text: str):
 
 
 @app.post("/api/tailor",response_model=JobStartResponse,tags=["Tailor"])
+async def start_tailor_job(req:TailorRequest,background_tasks:BackgroundTasks):
+
+    if not req.jd_text.strip():
+        raise HTTPException(status_code=400,detail="JD text cannot be empty")
+
+    job_id=str(uuid.uuid4())[:8]
+    jobs[job_id]={
+        "status":"running",
+        "events":asyncio.Queue(),
+        "pdf_path":None
+    }
+
+    background_tasks.add_task(run_pipline_worker,job_id=job_id,jd_text=req.jd_text)
+
+    return JobStartResponse(
+        job_id=job_id,
+        status="running",
+        message="Tailoring pipline started"
+    )
+
+@app.get("/api/tailor/{job_id}/stream",tags=["Tailor"])
+async def stream_job_progress(job_id:str):
+    job=jobs.get(job_id)
+    if not job:
+        raise HTTPException(status_code=404,detail="Job not found")
+        
+    async def event_generator():
+        queue:asyncio.Queue=job["events"]
+        while True:
+            event=await queue.get()
+            if event is None:
+                break
+            yield event
+
+    return EventSourceResponse(event_generator())
