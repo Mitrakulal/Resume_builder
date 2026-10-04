@@ -1,10 +1,3 @@
-from pydantic.v1.errors import NoneIsNotAllowedError
-from fastapi import status
-from math import exp
-from ctypes.wintypes import tagRECT
-from test import PROJECT_ROOT
-from pydantic.v1.utils import in_ipython
-import imp
 import asyncio
 import json
 import logging
@@ -16,7 +9,7 @@ from fastapi import BackgroundTasks,FastAPI,HTTPException
 from  fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
-from see_starlette.sse import EventSourceResponse
+from sse_starlette.sse import EventSourceResponse
 
 from graph import graph
 from schemas.candidate_profile import CandidateProfile
@@ -199,3 +192,32 @@ async def stream_job_progress(job_id:str):
             yield event
 
     return EventSourceResponse(event_generator())
+
+@app.get("/api/tailor/{job_id}/pdf", tags=["Tailor"])
+async def get_compiled_pdf(job_id: str):
+    """
+    Streams the generated PDF file to the browser.
+    """
+    job = jobs.get(job_id)
+    pdf_path = None
+
+    if job and job.get("pdf_path"):
+        pdf_path = Path(job["pdf_path"])
+    else:
+        # Fallback to output/resume.pdf
+        default_pdf = OUTPUT_DIR / "resume.pdf"
+        if default_pdf.exists():
+            pdf_path = default_pdf
+
+    if not pdf_path or not pdf_path.exists():
+        raise HTTPException(status_code=404, detail="Compiled PDF not found.")
+
+    return FileResponse(
+        path=str(pdf_path),
+        media_type="application/pdf",
+        filename=f"resume_{job_id}.pdf"
+    )
+
+@app.get("/api/health", tags=["Health"])
+async def health_check():
+    return {"status": "ok", "service": "resume-agent-api"}
