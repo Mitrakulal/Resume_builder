@@ -1,49 +1,87 @@
 {
   "personal_info": {
-    "name": "Alex Morgan",
-    "email": "alex.morgan@example.com",
+    "name": "Mitra",
+    "email": "mitra@example.com",
     "phone": "+1-555-014-7823",
-    "location": "Austin, TX"
+    "location": "San Francisco, CA"
   },
-  "professional_summary": "Python backend developer with experience building REST APIs, integrating databases, and improving service reliability. Comfortable working with FastAPI, automated testing, Docker, and cloud-based deployment workflows.",
+  "professional_summary": "Versatile Software Engineer with deep expertise in both Full Stack Web Development and Artificial Intelligence. Proven track record of building beautiful, scalable React and Node.js web applications, as well as designing, training, and deploying large language models (LLMs), RAG systems, and neural networks in production environments.",
   "experience": [
     {
-      "role": "Backend Developer",
-      "company": "Northstar Labs",
+      "role": "AI & Full Stack Engineer",
+      "company": "TechCorp Innovations",
       "dates": "2022 - Present",
-      "description": "Built and maintained backend services for an internal operations platform, designed REST API endpoints, and improved automated test coverage for core workflows.",
-      "skills": ["Python", "FastAPI", "REST APIs", "PostgreSQL", "Docker", "Pytest"]
+      "description": "Architected a full-stack internal analytics dashboard using React, TypeScript, and Node.js. Integrated an advanced AI chatbot using LangChain, OpenAI APIs, and vector databases (Pinecone) to allow employees to query internal documents via RAG. Reduced data retrieval time by 80%.",
+      "skills": [
+        "React",
+        "TypeScript",
+        "Node.js",
+        "Python",
+        "LangChain",
+        "OpenAI",
+        "Pinecone",
+        "RAG"
+      ]
     },
     {
-      "role": "Software Engineer Intern",
-      "company": "Cedar Systems",
-      "dates": "2021 - 2022",
-      "description": "Supported API development and data-processing jobs, fixed production defects, and created documentation for developer workflows.",
-      "skills": ["Python", "Flask", "REST APIs", "SQL", "Git"]
+      "role": "Machine Learning Engineer",
+      "company": "DataMind AI",
+      "dates": "2020 - 2022",
+      "description": "Developed and fine-tuned transformer-based NLP models using PyTorch and HuggingFace for sentiment analysis on customer reviews. Deployed models as high-throughput REST APIs using FastAPI and Docker, serving over 1M requests daily.",
+      "skills": [
+        "Python",
+        "PyTorch",
+        "HuggingFace",
+        "NLP",
+        "FastAPI",
+        "Docker",
+        "Transformers"
+      ]
+    },
+    {
+      "role": "Frontend Developer",
+      "company": "WebSolutions Inc",
+      "dates": "2018 - 2020",
+      "description": "Built responsive and performant user interfaces for e-commerce clients using React, Next.js, and TailwindCSS. Implemented complex state management with Redux and integrated Stripe payment gateways.",
+      "skills": [
+        "React",
+        "Next.js",
+        "TailwindCSS",
+        "Redux",
+        "JavaScript",
+        "CSS",
+        "HTML"
+      ]
     }
   ],
   "education": [
     {
-      "degree": "Bachelor of Science in Computer Science",
-      "school": "Lakeview University",
-      "location": "Austin, TX",
-      "year": "2021"
+      "degree": "Master of Science in Computer Science (Focus on AI)",
+      "school": "Stanford University",
+      "location": "Stanford, CA",
+      "year": "2018"
     }
   ],
   "skills": [
+    "React",
+    "TypeScript",
+    "JavaScript",
+    "Node.js",
+    "Next.js",
+    "TailwindCSS",
     "Python",
+    "PyTorch",
+    "Machine Learning",
+    "LangChain",
+    "LLMs",
+    "RAG",
     "FastAPI",
-    "REST APIs",
-    "Flask",
-    "PostgreSQL",
-    "SQL",
     "Docker",
-    "Pytest",
-    "Git",
-    "Linux"
+    "SQL",
+    "PostgreSQL"
   ],
   "certifications": [
-    "AWS Certified Cloud Practitioner",
-    "Python Institute Certified Associate in Python Programming"
+    "AWS Certified Machine Learning – Specialty",
+    "Meta Front-End Developer Professional Certificate"
   ]
 }

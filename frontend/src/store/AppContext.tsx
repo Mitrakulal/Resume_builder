@@ -39,9 +39,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [applications],
   );
 
-  const createApplication = useCallback((role: string, company: string, jdId: string) => {
+  const createApplication = useCallback((role: string, company: string, jdId: string, customId?: string) => {
     const app: Application = {
-      id: `app-${Date.now()}-${appCounter++}`,
+      id: customId || `app-${Date.now()}-${appCounter++}`,
       role,
       company,
       jdId,

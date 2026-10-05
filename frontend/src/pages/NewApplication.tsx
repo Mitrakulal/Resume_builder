@@ -18,6 +18,7 @@ export default function NewApplication() {
   const { createApplication, updateApplication } = useApp();
 
   const [step, setStep] = useState<"input" | "running">("input");
+  const [jdText, setJdText] = useState(sampleJDs[0].text);
   const [createdId, setCreatedId] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>("paste");
   const [jdId, setJdId] = useState(sampleJDs[0].id);
@@ -58,12 +59,26 @@ export default function NewApplication() {
     }, 900);
   }
 
-  function handleRun() {
-    if (!role.trim() || !company.trim()) return;
-    const app = createApplication(role.trim(), company.trim(), jdId);
-    updateApplication(app.id, { status: "pipeline" });
-    setCreatedId(app.id);
-    setStep("running");
+  async function handleRun() {
+    if (!role.trim() || !company.trim() || !jdText.trim()) return;
+    
+    try {
+      const response = await fetch("http://127.0.0.1:8000/api/tailor", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ jd_text: jdText })
+      });
+      const data = await response.json();
+      
+      // Create the app in frontend state using the BACKEND'S job_id
+      const app = createApplication(role.trim(), company.trim(), jdId, data.job_id);
+      updateApplication(app.id, { status: "pipeline" });
+      
+      setCreatedId(data.job_id);
+      setStep("running");
+    } catch (error) {
+      console.error("Failed to start pipeline:", error);
+    }
   }
 
   function handlePipelineComplete() {
@@ -109,7 +124,8 @@ export default function NewApplication() {
                 <textarea
                   id="jd-text"
                   rows={10}
-                  defaultValue={sampleJDs[0].text}
+                  value={jdText}
+                  onChange={(e) => setJdText(e.target.value)}
                   className="w-full resize-y rounded-2xl border border-ink/15 bg-cream/50 px-4 py-3 text-[15px] leading-relaxed outline-none placeholder:text-inksoft/60 focus:border-accent"
                   placeholder="Paste the job description here…"
                 />
@@ -229,7 +245,7 @@ export default function NewApplication() {
           </div>
         </Card>
       ) : (
-        <PipelineRunner jobTitle={`${role} @ ${company}`} onComplete={handlePipelineComplete} />
+        <PipelineRunner jobId={createdId} jobTitle={`${role} @ ${company}`} onComplete={handlePipelineComplete} />
       )}
     </>
   );

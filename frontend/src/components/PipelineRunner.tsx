@@ -8,37 +8,48 @@ import { PIPELINE_STAGES } from "../lib/pipeline.ts";
  * PIPELINE_STAGES durations, rotates activity lines every 900ms, then
  * fires onComplete exactly once after a short hold on the "done" state.
  */
-export function PipelineRunner({ jobTitle, onComplete }: { jobTitle: string; onComplete: () => void }) {
+export function PipelineRunner({ jobId, jobTitle, onComplete }: { jobId?: string | null; jobTitle: string; onComplete: () => void }) {
   const [stageIndex, setStageIndex] = useState(0);
   const [activityIndex, setActivityIndex] = useState(0);
-  const completedRef = useRef(false);
-  const onCompleteRef = useRef(onComplete);
-  onCompleteRef.current = onComplete;
 
   const done = stageIndex >= PIPELINE_STAGES.length;
 
-  // Advance through stages on each stage's duration; hold 800ms when done, then complete.
+  // Listen to the real backend stream using EventSource
   useEffect(() => {
-    if (done) {
-      const t = setTimeout(() => {
-        if (!completedRef.current) {
-          completedRef.current = true;
-          onCompleteRef.current();
-        }
-      }, 800);
-      return () => clearTimeout(t);
-    }
-    const t = setTimeout(() => {
-      setStageIndex((i) => i + 1);
-      setActivityIndex(0);
-    }, PIPELINE_STAGES[stageIndex].durationMs);
-    return () => clearTimeout(t);
-  }, [stageIndex, done]);
+    if (!jobId) return;
+    const sse = new EventSource(`http://127.0.0.1:8000/api/tailor/${jobId}/stream`);
 
-  // Rotate the activity line while a stage is running.
+    sse.addEventListener("start", () => setStageIndex(0));
+    
+    sse.addEventListener("node_progress", (e) => {
+      const data = JSON.parse(e.data);
+      const nodeToStage: Record<string, number> = {
+        read_jd: 1,
+        load_profile: 2,
+        match: 3,
+        generate_content: 4,
+        render: 5,
+        compile: 5
+      };
+      if (nodeToStage[data.node]) {
+        setStageIndex(nodeToStage[data.node]);
+      }
+    });
+
+    sse.addEventListener("completed", () => {
+      sse.close();
+      setStageIndex(PIPELINE_STAGES.length);
+      setTimeout(onComplete, 800); // slight delay so the user sees the final checkmark
+    });
+
+    sse.onerror = () => sse.close();
+    return () => sse.close();
+  }, [jobId, onComplete]);
+
+  // Rotate the activity line while a stage is running
   useEffect(() => {
     if (done) return;
-    const count = PIPELINE_STAGES[stageIndex].activity.length;
+    const count = PIPELINE_STAGES[stageIndex]?.activity.length || 1;
     const t = setInterval(() => setActivityIndex((i) => (i + 1) % count), 900);
     return () => clearInterval(t);
   }, [stageIndex, done]);
@@ -124,7 +135,7 @@ export function PipelineRunner({ jobTitle, onComplete }: { jobTitle: string; onC
       </ol>
 
       <p className="mt-8 border-t border-ink/8 pt-4 text-[13px] text-inksoft">
-        Demo simulation — in production each stage calls the LangGraph backend.
+        Running live via EventSource on http://127.0.0.1:8000
       </p>
     </Card>
   );

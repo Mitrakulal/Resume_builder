@@ -29,13 +29,13 @@ async def generate_content(state):
     
     structured_model = model.with_structured_output(ResumeContent)
     prompt = f"""
-    Create tailored resume content for this job.
-
-    Use only facts from the candidate profile.
-    Do not invent companies, dates, technologies, achievements, or metrics.
-    Do not add skills that are not present in the candidate profile.
-    Prioritize the candidate's skills that match the job requirements.
-    Rewrite existing information clearly and professionally.
+    You are an expert resume generator. Your task is to extract information from the CANDIDATE PROFILE and format it into the output schema.
+    
+    CRITICAL RULES:
+    1. EXCLUDE ENTIRELY any jobs, skills, or certifications from the candidate profile that are completely unrelated to the job requirements.
+    2. NEVER invent, hallucinate, or add new skills (like AWS) if they are not explicitly listed in the CANDIDATE PROFILE.
+    3. NO PLACEHOLDERS: Do not write things like 'role_title_filtered'. Actually write the real job title, company, and description from the candidate profile.
+    4. Format each item in the experience_section list as a single string combining the role, company, dates, and description.
 
     JOB REQUIREMENTS:
     {jd_requirements.model_dump_json(indent=2)}
@@ -46,7 +46,7 @@ async def generate_content(state):
     MATCH RESULTS:
     {matched_items.model_dump_json(indent=2)}
 
-    Return concise, professional resume content.
+    Return the filtered and concise resume content matching the JSON schema.
     """
     resume_content = await structured_model.ainvoke(prompt)
 

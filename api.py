@@ -62,7 +62,7 @@ async def get_profile():
         raise HTTPException(status_code=404, detail="Master profile not found")
     try:
         content=PROFILE_PATH.read_text(encoding="utf-8")
-        return json.load(content)
+        return json.loads(content)
     except Exception as e:
         logger.error(f"Failed to read the master_profile.json{e}")
         raise HTTPException(status_code=500,detail=str(e))
@@ -93,7 +93,7 @@ async def run_pipline_worker(job_id : str, jd_text: str):
     if not job:
         return
 
-    event_queue=asyncio.Queue=job["events"]
+    event_queue: asyncio.Queue = job["events"]
 
     initial_state={
         "jd_raw_text":jd_text,
@@ -174,7 +174,7 @@ async def start_tailor_job(req:TailorRequest,background_tasks:BackgroundTasks):
     return JobStartResponse(
         job_id=job_id,
         status="running",
-        message="Tailoring pipline started"
+        message="Tailoring pipline "
     )
 
 @app.get("/api/tailor/{job_id}/stream",tags=["Tailor"])

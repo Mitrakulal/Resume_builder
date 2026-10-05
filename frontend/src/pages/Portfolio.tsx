@@ -98,6 +98,28 @@ export default function Portfolio() {
 
   const patch = (p: Partial<CandidateProfile>) => updateProfile(p);
 
+  const handleUploadJson = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const json = JSON.parse(event.target?.result as string);
+        // Basic validation - check if it looks like a profile
+        if (json.contact && json.experience) {
+          updateProfile(json);
+        } else {
+          alert("Invalid profile JSON format");
+        }
+      } catch (err) {
+        alert("Invalid JSON file");
+      }
+    };
+    reader.readAsText(file);
+    // Reset the input so the same file can be uploaded again if needed
+    e.target.value = "";
+  };
+
   /* ------------------------------ Contact ----------------------------- */
 
   const setContact = (k: keyof CandidateProfile["contact"], v: string | string[]) =>
@@ -155,7 +177,21 @@ export default function Portfolio() {
         title="Portfolio"
         sub="Your source of truth. The pipeline only ever uses what's here."
         actions={
-          <span className="text-sm text-inksoft">Edits save locally for this demo session</span>
+          <div className="flex items-center gap-4">
+            <span className="text-sm text-inksoft">Edits save locally for this demo session</span>
+            <label className="cursor-pointer">
+              <Button variant="outline" type="button" onClick={() => document.getElementById('json-upload')?.click()}>
+                Upload master_profile.json
+              </Button>
+              <input
+                id="json-upload"
+                type="file"
+                accept=".json"
+                className="hidden"
+                onChange={handleUploadJson}
+              />
+            </label>
+          </div>
         }
       />
 
