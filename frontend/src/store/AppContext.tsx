@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useMemo, useState, useEffect, type ReactNode } from "react";
 import {
   demoApplications,
   demoProfile,
@@ -12,6 +12,7 @@ import {
 interface AppContextValue {
   profile: CandidateProfile;
   updateProfile: (patch: Partial<CandidateProfile>) => void;
+  saveProfileToBackend: () => Promise<void>;
   applications: Application[];
   getApplication: (id: string) => Application | undefined;
   createApplication: (role: string, company: string, jdId: string) => Application;
@@ -19,6 +20,7 @@ interface AppContextValue {
   deleteApplication: (id: string) => void;
   tone: Tone;
   setTone: (t: Tone) => void;
+  isLoadingProfile: boolean;
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -27,12 +29,48 @@ let appCounter = 100;
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<CandidateProfile>(demoProfile);
+  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
   const [applications, setApplications] = useState<Application[]>(demoApplications);
   const [tone, setTone] = useState<Tone>("Professional");
+
+  // Fetch profile on mount
+  useEffect(() => {
+    fetch("http://127.0.0.1:8000/api/profile")
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to fetch profile");
+        return res.json();
+      })
+      .then((data) => {
+        setProfile(data);
+        setIsLoadingProfile(false);
+      })
+      .catch((err) => {
+        console.error("Error loading profile from backend:", err);
+        setIsLoadingProfile(false);
+      });
+  }, []);
 
   const updateProfile = useCallback((patch: Partial<CandidateProfile>) => {
     setProfile((prev) => ({ ...prev, ...patch }));
   }, []);
+
+  const saveProfileToBackend = useCallback(async () => {
+    try {
+      const res = await fetch("http://127.0.0.1:8000/api/profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(profile),
+      });
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.detail || "Failed to save profile");
+      }
+      alert("Profile saved to backend successfully!");
+    } catch (err: any) {
+      console.error(err);
+      alert("Error saving profile: " + err.message);
+    }
+  }, [profile]);
 
   const getApplication = useCallback(
     (id: string) => applications.find((a) => a.id === id),
@@ -73,8 +111,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       deleteApplication,
       tone,
       setTone,
+      saveProfileToBackend,
+      isLoadingProfile,
     }),
-    [profile, applications, tone, updateProfile, getApplication, createApplication, updateApplication, deleteApplication],
+    [profile, applications, tone, updateProfile, getApplication, createApplication, updateApplication, deleteApplication, saveProfileToBackend, isLoadingProfile],
   );
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

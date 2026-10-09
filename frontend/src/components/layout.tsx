@@ -203,7 +203,7 @@ const shellNav = [
 export function AppShell() {
   const location = useLocation();
   const { profile } = useApp();
-  const initials = profile.contact.name
+  const initials = profile.personal_info.name
     .split(" ")
     .map((w) => w[0])
     .join("")
@@ -275,7 +275,7 @@ export function AppShell() {
               <DemoBadge />
               <div
                 className="flex h-10 w-10 items-center justify-center rounded-full bg-ink text-sm font-bold text-cream"
-                title={profile.contact.name}
+                title={profile.personal_info.name}
               >
                 {initials}
               </div>

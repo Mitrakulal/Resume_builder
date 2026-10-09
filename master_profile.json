@@ -1,87 +1,77 @@
 {
   "personal_info": {
-    "name": "Mitra",
-    "email": "mitra@example.com",
-    "phone": "+1-555-014-7823",
-    "location": "San Francisco, CA"
+    "name": "Mitra Kulal",
+    "email": "kulalmitra@gmail.com",
+    "phone": "6360874181",
+    "location": "Udupi, Karnataka"
   },
-  "professional_summary": "Versatile Software Engineer with deep expertise in both Full Stack Web Development and Artificial Intelligence. Proven track record of building beautiful, scalable React and Node.js web applications, as well as designing, training, and deploying large language models (LLMs), RAG systems, and neural networks in production environments.",
+  "professional_summary": "AI/ML engineering student specializing in agentic systems, retrieval-augmented generation, and local LLM inference (Ollama, llama.cpp). Shipped a production RAG system for a live client. Seeking a Generative AI / LLM internship to apply this retrieval and local-inference experience toward fine-tuning, knowledge graph retrieval, and real-time voice AI pipelines.",
   "experience": [
     {
-      "role": "AI & Full Stack Engineer",
-      "company": "TechCorp Innovations",
-      "dates": "2022 - Present",
-      "description": "Architected a full-stack internal analytics dashboard using React, TypeScript, and Node.js. Integrated an advanced AI chatbot using LangChain, OpenAI APIs, and vector databases (Pinecone) to allow employees to query internal documents via RAG. Reduced data retrieval time by 80%.",
-      "skills": [
-        "React",
-        "TypeScript",
-        "Node.js",
-        "Python",
-        "LangChain",
-        "OpenAI",
-        "Pinecone",
-        "RAG"
-      ]
+      "role": "AI/ML Engineer, Contract \u2014 Production RAG Knowledge Assistant",
+      "company": "mattrlabs \u2014 AI Hardware Studio",
+      "dates": "2026",
+      "description": "Deployment: Shipped a client-facing RAG assistant answering live product, service, and pricing queries. Retrieval: Built a ChromaDB vector store with section-aware chunking and nomic-embed-text embeddings for source-attributed answers. Reliability: Added metadata-based routing and an LLM-judged fallback, replacing hardcoded confidence thresholds. Infrastructure: Served via FastAPI, deployed on a Mac Mini behind a secured Cloudflare Tunnel.",
+      "skills": ["RAG", "ChromaDB", "FastAPI", "Cloudflare Tunnel", "Embeddings"]
     },
     {
-      "role": "Machine Learning Engineer",
-      "company": "DataMind AI",
-      "dates": "2020 - 2022",
-      "description": "Developed and fine-tuned transformer-based NLP models using PyTorch and HuggingFace for sentiment analysis on customer reviews. Deployed models as high-throughput REST APIs using FastAPI and Docker, serving over 1M requests daily.",
-      "skills": [
-        "Python",
-        "PyTorch",
-        "HuggingFace",
-        "NLP",
-        "FastAPI",
-        "Docker",
-        "Transformers"
-      ]
+      "role": "AI Trip Planner \u2014 Personal / Hackathon Project",
+      "company": "GitHub",
+      "dates": "2026",
+      "description": "Architecture: Designed a supervisor-based multi-agent system coordinating Travel, Weather, Food, and Budget agents via LangGraph. Tooling: Built a custom Weather MCP server and integrated live web search. Flexibility: Runs on local (Ollama) or cloud (OpenAI, Anthropic, Google) inference from a single model configuration.",
+      "skills": ["LangGraph", "MCP", "Ollama", "OpenAI", "Multi-Agent Systems"]
     },
     {
-      "role": "Frontend Developer",
-      "company": "WebSolutions Inc",
-      "dates": "2018 - 2020",
-      "description": "Built responsive and performant user interfaces for e-commerce clients using React, Next.js, and TailwindCSS. Implemented complex state management with Redux and integrated Stripe payment gateways.",
-      "skills": [
-        "React",
-        "Next.js",
-        "TailwindCSS",
-        "Redux",
-        "JavaScript",
-        "CSS",
-        "HTML"
-      ]
+      "role": "Local LLM Chat & API Platform",
+      "company": "Mattr Chat \u2014 Personal Infrastructure Project",
+      "dates": "2026",
+      "description": "Inference: Built the backend for a ChatGPT-style local LLM chat platform \u2014 locally hosted model via llama.cpp behind an OpenAI-compatible streaming API, integrated with a web chat UI. Streaming: Engineered a Node.js/Express gateway with Server-Sent Events (SSE) forwarding and per-key request fairness for low-latency generation. Observability: Added a SQLite usage ledger and a private console for key issuance and capacity monitoring.",
+      "skills": ["llama.cpp", "Node.js", "Express", "SSE", "SQLite"]
     }
   ],
   "education": [
     {
-      "degree": "Master of Science in Computer Science (Focus on AI)",
-      "school": "Stanford University",
-      "location": "Stanford, CA",
-      "year": "2018"
+      "degree": "B.E. in Artificial Intelligence and Machine Learning | CGPA: 8.75 / 10.0",
+      "school": "Sahyadri College of Engineering and Management",
+      "location": "Mangaluru, Karnataka",
+      "year": "Expected 2028"
     }
   ],
   "skills": [
-    "React",
-    "TypeScript",
-    "JavaScript",
-    "Node.js",
-    "Next.js",
-    "TailwindCSS",
     "Python",
-    "PyTorch",
-    "Machine Learning",
-    "LangChain",
-    "LLMs",
-    "RAG",
-    "FastAPI",
-    "Docker",
+    "C",
+    "C++",
     "SQL",
-    "PostgreSQL"
+    "RAG",
+    "LangChain",
+    "LangGraph",
+    "PyTorch",
+    "TensorFlow",
+    "llama.cpp",
+    "Ollama",
+    "MCP",
+    "OpenCV",
+    "ChromaDB",
+    "FAISS",
+    "FastAPI",
+    "Node.js",
+    "Express",
+    "REST APIs",
+    "SSE",
+    "Docker",
+    "Git",
+    "Cloudflare Tunnel",
+    "SQLite",
+    "MongoDB",
+    "Firebase",
+    "Supabase",
+    "vector search",
+    "embeddings"
   ],
   "certifications": [
-    "AWS Certified Machine Learning – Specialty",
-    "Meta Front-End Developer Professional Certificate"
+    "2nd Place, TechSprint 2025 Hackathon",
+    "12th Nationally, IIT Bombay Techfest 2024 robotics competition",
+    "Consolation Award, AARAMBH 2025 entrepreneurship summit",
+    "1st Place, Line Follower Robot Competition | 3rd Place, Maze Solver Robot Competition"
   ]
 }

@@ -53,23 +53,23 @@ export interface EducationItem {
 }
 
 export interface CandidateProfile {
-  contact: ContactInfo;
-  summary: string;
+  personal_info: ContactInfo;
+  professional_summary: string;
   experience: ExperienceItem[];
-  projects: ProjectItem[];
-  skills: string[];
   education: EducationItem[];
+  skills: string[];
+  certifications: string[];
 }
 
 export const demoProfile: CandidateProfile = {
-  contact: {
+  personal_info: {
     name: "Aarav Mehta",
     email: "aarav.mehta@example.com",
     phone: "+91 98765 43210",
     location: "Bengaluru, India",
     links: ["github.com/aaravmehta", "linkedin.com/in/aaravmehta", "aaravmehta.dev"],
   },
-  summary:
+  professional_summary:
     "Frontend-leaning full-stack developer with 2 years of experience building React applications and production RAG systems. Comfortable owning features end to end — from Figma handoff to deploy.",
   experience: [
     {
@@ -93,33 +93,13 @@ export const demoProfile: CandidateProfile = {
       skillsUsed: ["React", "Node.js", "PostgreSQL", "Docker", "REST APIs"],
     },
   ],
-  projects: [
+  education: [
     {
-      id: "proj-001",
-      name: "Mattr Chat",
-      description:
-        "Production RAG chatbot for a real client: document ingestion pipeline, hybrid retrieval with reranking, and a React chat UI. Serves 2,000+ conversations monthly with 92% answer relevance.",
-      skillsUsed: ["Python", "LangChain", "RAG", "React", "LLMs"],
-      date: "2025",
-      link: "github.com/aaravmehta/mattr-chat",
-    },
-    {
-      id: "proj-002",
-      name: "AttendX",
-      description:
-        "QR-based attendance system for college events: React frontend, Node.js API, PostgreSQL, and real-time dashboards. Used across 12 events with 4,000+ check-ins.",
-      skillsUsed: ["React", "Node.js", "PostgreSQL", "REST APIs"],
-      date: "2024",
-      link: "github.com/aaravmehta/attendx",
-    },
-    {
-      id: "proj-003",
-      name: "Portfolio v3",
-      description:
-        "Personal portfolio rebuilt with React, TypeScript and Tailwind CSS. Scores 100 on Lighthouse performance and accessibility.",
-      skillsUsed: ["React", "TypeScript", "Tailwind CSS", "Vite"],
-      date: "2025",
-      link: "aaravmehta.dev",
+      id: "edu-001",
+      institution: "Visvesvaraya Technological University",
+      degree: "B.E. Computer Science",
+      startDate: "2024",
+      endDate: "2028",
     },
   ],
   skills: [
@@ -140,15 +120,9 @@ export const demoProfile: CandidateProfile = {
     "Figma",
     "Vite",
   ],
-  education: [
-    {
-      id: "edu-001",
-      institution: "Visvesvaraya Technological University",
-      degree: "B.E. Computer Science",
-      startDate: "2024",
-      endDate: "2028",
-    },
-  ],
+  certifications: [
+    "AWS Certified Developer",
+  ]
 };
 
 /* ------------------------------- JDs -------------------------------- */

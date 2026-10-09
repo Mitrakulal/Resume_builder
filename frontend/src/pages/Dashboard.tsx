@@ -40,7 +40,7 @@ interface ActivityItem {
 
 export default function Dashboard() {
   const { profile, applications } = useApp();
-  const firstName = profile.contact.name.split(" ")[0] ?? "there";
+  const firstName = profile.personal_info.name.split(" ")[0] ?? "there";
   const daypart = daypartFor(new Date().getHours());
 
   const avgScore =

@@ -51,7 +51,7 @@ export default function Settings() {
   const savedTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const setContact = (k: "name" | "email" | "phone" | "location", v: string) =>
-    updateProfile({ contact: { ...profile.contact, [k]: v } });
+    updateProfile({ personal_info: { ...profile.personal_info, [k]: v } });
 
   const save = () => {
     if (savedTimeout.current) clearTimeout(savedTimeout.current);
@@ -85,7 +85,7 @@ export default function Settings() {
               <input
                 id={`settings-${key}`}
                 type="text"
-                value={profile.contact[key]}
+                value={profile.personal_info[key]}
                 onChange={(e) => setContact(key, e.target.value)}
                 className={inputCls}
               />

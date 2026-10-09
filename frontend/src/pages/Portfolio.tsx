@@ -88,12 +88,11 @@ function EditToggle({
 
 /* ------------------------------- Page -------------------------------- */
 
-export default function Portfolio() {
-  const { profile, updateProfile } = useApp();
+  export default function Portfolio() {
+  const { profile, updateProfile, saveProfileToBackend, isLoadingProfile } = useApp();
   const [editingExp, setEditingExp] = useState<string | null>(null);
   const [expDraft, setExpDraft] = useState<ExperienceItem | null>(null);
-  const [editingProj, setEditingProj] = useState<string | null>(null);
-  const [projDraft, setProjDraft] = useState<ProjectItem | null>(null);
+
   const [newSkill, setNewSkill] = useState("");
 
   const patch = (p: Partial<CandidateProfile>) => updateProfile(p);
@@ -105,8 +104,7 @@ export default function Portfolio() {
     reader.onload = (event) => {
       try {
         const json = JSON.parse(event.target?.result as string);
-        // Basic validation - check if it looks like a profile
-        if (json.contact && json.experience) {
+        if (json.personal_info && json.experience) {
           updateProfile(json);
         } else {
           alert("Invalid profile JSON format");
@@ -116,14 +114,13 @@ export default function Portfolio() {
       }
     };
     reader.readAsText(file);
-    // Reset the input so the same file can be uploaded again if needed
     e.target.value = "";
   };
 
   /* ------------------------------ Contact ----------------------------- */
 
   const setContact = (k: keyof CandidateProfile["contact"], v: string | string[]) =>
-    patch({ contact: { ...profile.contact, [k]: v } });
+    patch({ personal_info: { ...profile.personal_info, [k]: v } });
 
   const contactFields: { key: "name" | "email" | "phone" | "location"; label: string }[] = [
     { key: "name", label: "Name" },
@@ -147,20 +144,7 @@ export default function Portfolio() {
     setExpDraft(null);
   };
 
-  /* ----------------------------- Projects ----------------------------- */
 
-  const startProjEdit = (item: ProjectItem) => {
-    setEditingProj(item.id);
-    setProjDraft({ ...item, skillsUsed: [...item.skillsUsed] });
-  };
-  const saveProjEdit = () => {
-    if (!editingProj || !projDraft) return;
-    patch({
-      projects: profile.projects.map((p) => (p.id === editingProj ? projDraft : p)),
-    });
-    setEditingProj(null);
-    setProjDraft(null);
-  };
 
   /* ------------------------------- Skills ------------------------------ */
 
@@ -171,6 +155,10 @@ export default function Portfolio() {
     setNewSkill("");
   };
 
+  if (isLoadingProfile) {
+    return <div className="p-10 text-center text-inksoft">Loading profile from backend...</div>;
+  }
+
   return (
     <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
       <PageHeader
@@ -178,7 +166,9 @@ export default function Portfolio() {
         sub="Your source of truth. The pipeline only ever uses what's here."
         actions={
           <div className="flex items-center gap-4">
-            <span className="text-sm text-inksoft">Edits save locally for this demo session</span>
+            <Button onClick={saveProfileToBackend}>
+              Save to Backend
+            </Button>
             <label className="cursor-pointer">
               <Button variant="outline" type="button" onClick={() => document.getElementById('json-upload')?.click()}>
                 Upload master_profile.json
@@ -204,7 +194,7 @@ export default function Portfolio() {
               key={key}
               id={`contact-${key}`}
               label={label}
-              value={profile.contact[key]}
+              value={profile.personal_info[key]}
               onChange={(v) => setContact(key, v)}
             />
           ))}
@@ -213,7 +203,7 @@ export default function Portfolio() {
           <TextField
             id="contact-links"
             label="Links (comma-separated)"
-            value={profile.contact.links.join(", ")}
+            value={profile.personal_info.links.join(", ")}
             onChange={(v) =>
               setContact(
                 "links",
@@ -319,89 +309,7 @@ export default function Portfolio() {
         </div>
       </section>
 
-      {/* Projects */}
-      <section aria-label="Projects" className="mb-6">
-        <h2 className="font-display mb-4 text-xl font-semibold">Projects</h2>
-        <div className="space-y-4">
-          {profile.projects.map((item) => (
-            <Card key={item.id} className="p-6 sm:p-8">
-              {editingProj === item.id && projDraft ? (
-                <div className="space-y-4">
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <TextField
-                      id={`proj-name-${item.id}`}
-                      label="Name"
-                      value={projDraft.name}
-                      onChange={(v) => setProjDraft({ ...projDraft, name: v })}
-                    />
-                    <TextField
-                      id={`proj-date-${item.id}`}
-                      label="Date"
-                      value={projDraft.date}
-                      onChange={(v) => setProjDraft({ ...projDraft, date: v })}
-                    />
-                  </div>
-                  <TextField
-                    id={`proj-link-${item.id}`}
-                    label="Link"
-                    value={projDraft.link ?? ""}
-                    onChange={(v) => setProjDraft({ ...projDraft, link: v })}
-                  />
-                  <TextField
-                    id={`proj-desc-${item.id}`}
-                    label="Description"
-                    textarea
-                    value={projDraft.description}
-                    onChange={(v) => setProjDraft({ ...projDraft, description: v })}
-                  />
-                  <TextField
-                    id={`proj-skills-${item.id}`}
-                    label="Skills (comma-separated)"
-                    value={projDraft.skillsUsed.join(", ")}
-                    onChange={(v) =>
-                      setProjDraft({
-                        ...projDraft,
-                        skillsUsed: v
-                          .split(",")
-                          .map((s) => s.trim())
-                          .filter(Boolean),
-                      })
-                    }
-                  />
-                  <EditToggle
-                    editing
-                    onEdit={() => {}}
-                    onSave={saveProjEdit}
-                    onCancel={() => {
-                      setEditingProj(null);
-                      setProjDraft(null);
-                    }}
-                  />
-                </div>
-              ) : (
-                <div className="flex flex-wrap items-start justify-between gap-4">
-                  <div>
-                    <h3 className="text-lg font-semibold">{item.name}</h3>
-                    <p className="text-sm text-inksoft">{item.date}</p>
-                    <p className="mt-3 leading-relaxed text-ink">{item.description}</p>
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      {item.skillsUsed.map((s) => (
-                        <Chip key={s}>{s}</Chip>
-                      ))}
-                    </div>
-                  </div>
-                  <EditToggle
-                    editing={false}
-                    onEdit={() => startProjEdit(item)}
-                    onSave={() => {}}
-                    onCancel={() => {}}
-                  />
-                </div>
-              )}
-            </Card>
-          ))}
-        </div>
-      </section>
+
 
       {/* Skills */}
       <Card className="mb-6 p-6 sm:p-8">
