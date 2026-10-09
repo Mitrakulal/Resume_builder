@@ -23,11 +23,7 @@
 \end{itemize}
 
 \section*{Skills}
-\begin{itemize}
-{% for skill in content.skills_section %}
-  \item {{ skill }}
-{% endfor %}
-\end{itemize}
+{{ content.skills_section | join(', ') }}
 
 \section*{Education}
 \begin{itemize}

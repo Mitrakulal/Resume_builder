@@ -9,15 +9,15 @@ from langchain_openai import ChatOpenAI
 
 from schemas.jd_requirements import JDRequirements
 
-load_dotenv()
+load_dotenv(override=True)
 
 model = ChatOpenAI(
-    model=os.getenv("GEMMA_MODEL"),
-    api_key=os.getenv("GEMMA_API_KEY"),
-    base_url=os.getenv("GEMMA_BASE_URL"),
+    model=os.getenv("MODEL_NAME") or os.getenv("OPENAI_MODEL") or os.getenv("GEMMA_MODEL", "gpt-4o-mini"),
+    api_key=os.getenv("OPENAI_API_KEY") or os.getenv("GEMMA_API_KEY"),
+    base_url=os.getenv("CLOUD_ENDPOINT") or os.getenv("OPENAI_BASE_URL") or os.getenv("GEMMA_BASE_URL"),
     temperature=0.2,
     max_completion_tokens=int(os.getenv("GEMMA_MAX_TOKENS", "2048")),
-    use_responses_api=False,
+    use_responses_api=False if os.getenv("GEMMA_BASE_URL") else True,
 )
 
 
