@@ -218,6 +218,28 @@ export const sampleJDs: SampleJD[] = [
       keywords: ["React", "TypeScript", "Node.js", "PostgreSQL", "REST APIs", "Docker"],
     },
   },
+  {
+    id: "jd-deep-learning",
+    title: "Deep Learning Engineer",
+    company: "Neuralis AI",
+    location: "Bengaluru · Hybrid",
+    sourceLabel: "Pasted from LinkedIn",
+    postedDate: "Oct 10, 2026",
+    text: "Neuralis AI is looking for a Deep Learning Engineer to join our applied research team. You will be responsible for building, training, and deploying large-scale neural networks for computer vision and NLP tasks.\n\nMust-haves: Strong background in Python, PyTorch, or TensorFlow. Experience with model optimization, quantization (e.g., using ONNX, TensorRT, or llama.cpp), and local/edge deployment. Familiarity with modern transformer architectures and RAG pipelines is a huge plus.\n\nYou will: design and train state-of-the-art models, optimize inference pipelines for low latency, and work closely with product teams to integrate AI capabilities into real-world applications.",
+    requirements: {
+      jobTitle: "Deep Learning Engineer",
+      company: "Neuralis AI",
+      location: "Bengaluru · Hybrid",
+      mustHave: ["Python", "PyTorch", "TensorFlow", "Model Optimization"],
+      niceToHave: ["ONNX", "llama.cpp", "Edge Deployment", "RAG"],
+      responsibilities: [
+        "Design and train state-of-the-art models",
+        "Optimize inference pipelines for low latency",
+        "Integrate AI capabilities into real-world applications",
+      ],
+      keywords: ["Deep Learning", "Computer Vision", "NLP", "PyTorch", "TensorFlow", "Transformers", "Quantization", "llama.cpp"],
+    },
+  },
 ];
 
 export function getJD(id: string): SampleJD {

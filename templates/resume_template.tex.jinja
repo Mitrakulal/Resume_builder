@@ -1,42 +1,146 @@
-\documentclass[11pt]{article}
-\usepackage[margin=0.5in]{geometry}
-\usepackage[hidelinks]{hyperref}
+\documentclass[letterpaper,11pt]{article}
 
-\author{}
-\date{}
+\usepackage{latexsym}
+\usepackage[empty]{fullpage}
+\usepackage{titlesec}
+\usepackage{marvosym}
+\usepackage[usenames,dvipsnames]{color}
+\usepackage{verbatim}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+\usepackage{fancyhdr}
+\usepackage[english]{babel}
+\usepackage{tabularx}
+\input{glyphtounicode}
+
+\pagestyle{fancy}
+\fancyhf{} % clear all header and footer fields
+\fancyfoot{}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+
+% Adjust margins
+\addtolength{\oddsidemargin}{-0.5in}
+\addtolength{\evensidemargin}{-0.5in}
+\addtolength{\textwidth}{1in}
+\addtolength{\topmargin}{-.5in}
+\addtolength{\textheight}{1.0in}
+
+\urlstyle{same}
+
+\raggedbottom
+\raggedright
+\setlength{\tabcolsep}{0in}
+
+% Sections formatting
+\titleformat{\section}{
+  \vspace{-4pt}\scshape\raggedright\large
+}{}{0em}{}[\color{black}\titlerule \vspace{-5pt}]
+
+% Ensure that generate pdf is machine readable/ATS parsable
+\pdfgentounicode=1
+
+%-------------------------
+% Custom commands
+\newcommand{\resumeItem}[1]{
+  \item\small{
+    #1 \vspace{-2pt}
+  }
+}
+
+\newcommand{\resumeSubheading}[4]{
+  \vspace{-2pt}\item
+    \begin{tabular*}{0.97\textwidth}[t]{l@{\extracolsep{\fill}}r}
+      \textbf{ #1} & #2 \\
+      \textit{\small #3} & \textit{\small #4} \\
+    \end{tabular*}\vspace{-7pt}
+}
+
+\newcommand{\resumeSubSubheading}[2]{
+    \item
+    \begin{tabular*}{0.97\textwidth}{l@{\extracolsep{\fill}}r}
+      \textit{\small #1} & \textit{\small #2} \\
+    \end{tabular*}\vspace{-7pt}
+}
+
+\newcommand{\resumeProjectHeading}[2]{
+    \item
+    \begin{tabular*}{0.97\textwidth}{l@{\extracolsep{\fill}}r}
+      \small #1 & #2 \\
+    \end{tabular*}\vspace{-7pt}
+}
+
+\newcommand{\resumeSubItem}[1]{\resumeItem{ #1}\vspace{-4pt}}
+
+\renewcommand\labelitemii{$\vcenter{\hbox{\tiny$\bullet$}}$}
+
+\newcommand{\resumeSubHeadingListStart}{\begin{itemize}[leftmargin=0.15in, label={}]}
+\newcommand{\resumeSubHeadingListEnd}{\end{itemize}}
+\newcommand{\resumeItemListStart}{\begin{itemize}}
+\newcommand{\resumeItemListEnd}{\end{itemize}\vspace{-5pt}}
+
+%-------------------------------------------
+%%%%%%  RESUME STARTS HERE  %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{document}
 
+%----------HEADING----------
 \begin{center}
-{\Large {{ personal_info.name }}}\\
-{{ personal_info.email }} | {{ personal_info.phone }} | {{ personal_info.location }}
+    \textbf{\Huge \scshape {{ personal_info.name }}} \\ \vspace{1pt}
+    \small {{ personal_info.location }} $|$ \href{mailto:{{ personal_info.email }}}{\underline{ {{ personal_info.email }} }} $|$ {{ personal_info.phone }} 
+    {% if personal_info.links %}
+        {% for link in personal_info.links %}
+        $|$ \href{https://{{ link }}}{\underline{ {{ link }} }}
+        {% endfor %}
+    {% endif %}
 \end{center}
 
-\section*{Professional Summary}
-{{ content.professional_summary }}
+{% if content.professional_summary %}
+%-----------SUMMARY-----------
+\section{Profile}
+  \small{
+    {{ content.professional_summary }}
+  }
+{% endif %}
 
-\section*{Experience}
-\begin{itemize}
-{% for item in content.experience_section %}
-  \item {{ item }}
-{% endfor %}
-\end{itemize}
+{% if content.education_section and content.education_section|length > 0 %}
+%-----------EDUCATION-----------
+\section{Education}
+  \resumeSubHeadingListStart
+    {% for item in content.education_section %}
+      \resumeItem{ {{ item }} }
+    {% endfor %}
+  \resumeSubHeadingListEnd
+{% endif %}
 
-\section*{Skills}
-{{ content.skills_section | join(', ') }}
+{% if content.experience_section and content.experience_section|length > 0 %}
+%-----------EXPERIENCE-----------
+\section{Experience}
+  \resumeSubHeadingListStart
+    {% for item in content.experience_section %}
+      \resumeItem{ {{ item }} }
+    {% endfor %}
+  \resumeSubHeadingListEnd
+{% endif %}
 
-\section*{Education}
-\begin{itemize}
-{% for item in content.education_section %}
-  \item {{ item }}
-{% endfor %}
-\end{itemize}
+{% if content.skills_section and content.skills_section|length > 0 %}
+%-----------TECHNICAL SKILLS-----------
+\section{Technical Skills}
+ \begin{itemize}[leftmargin=0.15in, label={}]
+    \small{\item{
+     \textbf{Skills}{: {{ content.skills_section | join(', ') }}}
+    }}
+ \end{itemize}
+{% endif %}
 
-\section*{Certifications}
-\begin{itemize}
-{% for item in content.certifications_section %}
-  \item {{ item }}
-{% endfor %}
-\end{itemize}
+{% if content.certifications_section and content.certifications_section|length > 0 %}
+%-----------ACHIEVEMENTS-----------
+\section{Achievements}
+  \resumeSubHeadingListStart
+    {% for item in content.certifications_section %}
+      \resumeItem{ {{ item }} }
+    {% endfor %}
+  \resumeSubHeadingListEnd
+{% endif %}
 
 \end{document}
