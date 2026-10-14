@@ -38,12 +38,15 @@ async def generate_content(state):
        - Tailor the phrasing, technologies, and achievements in each bullet to directly highlight relevance to the JOB REQUIREMENTS and MATCH RESULTS.
        - Start each bullet point with a strong past-tense action verb (e.g., "Architected", "Engineered", "Implemented", "Optimized", "Integrated").
     2. SELECTION & REFRAMING (NEVER LEAVE SECTIONS EMPTY):
-       - ALWAYS include the candidate's strongest work: ensure experience_section and projects_section each contain at least 1 to 2 entries.
+       - ALWAYS include the candidate's strongest work: ensure experience_section and projects_section each contain at least 1 to 2 entries and maximum of 3 to 4.
        - Even if past work is not an exact 1:1 match with the job's subfield, do NOT drop it. Instead, reframe transferable engineering skills (e.g. backend systems, C++/Python development, model deployment, latency optimization, architecture) to demonstrate strong engineering capability.
     3. STRICT GROUNDING:
        - Ground all achievements strictly in the candidate's actual background. Do not hallucinate unmentioned companies, degrees, or tools.
     4. NO PLACEHOLDERS:
        - Populate real values from the profile, never placeholders.
+    5. CLASSIFIED TECHNICAL SKILLS:
+       - Output 'skills_section' as a list of SkillCategory items, each containing 'category' (e.g. "Languages", "Frameworks & Libraries", "Databases & Storage", "Cloud & DevOps", "Developer Tools") and 'skills' (List[str]).
+       - Only include skills from the candidate profile, prioritizing those matching the job requirements.
 
     JOB REQUIREMENTS:
     {jd_requirements.model_dump_json(indent=2)}

@@ -169,7 +169,17 @@
 \section{Technical Skills}
  \begin{itemize}[leftmargin=0.15in, label={}]
     \small{\item{
-     \textbf{Skills}{: {{ content.skills_section | join(', ') }}}
+      {% for item in content.skills_section %}
+        {% if item is mapping and item.category is defined %}
+          \textbf{ {{ item.category }} }{: {{ item.skills | join(', ') }}}{% if not loop.last %} \\ \vspace{2pt} {% endif %}
+        {% elif item is mapping %}
+          {% for cat, skills in item.items() %}
+            \textbf{ {{ cat }} }{: {{ skills | join(', ') }}}{% if not loop.last %} \\ \vspace{2pt} {% endif %}
+          {% endfor %}
+        {% else %}
+          \textbf{Skills}{: {{ item }}}
+        {% endif %}
+      {% endfor %}
     }}
  \end{itemize}
 {% endif %}

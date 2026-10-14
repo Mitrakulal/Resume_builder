@@ -83,6 +83,13 @@ async def render(state):
     personal_info = _escape_latex_recursive(candidate_profile.personal_info.model_dump())
     content = _escape_latex_recursive(resume_content.model_dump())
 
+    # Escape skills_section category names (e.g. "Frameworks & Libraries" -> "Frameworks \& Libraries")
+    if isinstance(content.get("skills_section"), dict):
+        content["skills_section"] = {
+            _escape_latex(cat): skills
+            for cat, skills in content["skills_section"].items()
+        }
+
     rendered_tex = template.render(personal_info=personal_info, content=content)
 
     output_path = output_dir / "resume.tex"
