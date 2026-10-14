@@ -1,5 +1,6 @@
 \documentclass[letterpaper,11pt]{article}
 
+\usepackage[utf8]{inputenc}
 \usepackage{latexsym}
 \usepackage[empty]{fullpage}
 \usepackage{titlesec}
@@ -12,6 +13,12 @@
 \usepackage[english]{babel}
 \usepackage{tabularx}
 \input{glyphtounicode}
+
+% Fallback declarations for common Unicode characters
+\DeclareUnicodeCharacter{202F}{\,}
+\DeclareUnicodeCharacter{2011}{-}
+\DeclareUnicodeCharacter{2013}{--}
+\DeclareUnicodeCharacter{2014}{---}
 
 \pagestyle{fancy}
 \fancyhf{} % clear all header and footer fields

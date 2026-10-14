@@ -11,6 +11,31 @@ from jinja2 import Environment, FileSystemLoader
 def _escape_latex(value):
     """Escape plain text before inserting it into a LaTeX document."""
     text = str(value)
+
+    # Normalize special Unicode characters frequently produced by LLMs
+    unicode_replacements = {
+        "\u202f": " ",   # narrow no-break space
+        "\u00a0": " ",   # no-break space
+        "\u200b": "",    # zero-width space
+        "\u200e": "",    # LTR mark
+        "\u200f": "",    # RTL mark
+        "\u2010": "-",   # hyphen
+        "\u2011": "-",   # non-breaking hyphen
+        "\u2012": "-",   # figure dash
+        "\u2013": "--",  # en dash
+        "\u2014": "---", # em dash
+        "\u2018": "'",   # left single quotation mark
+        "\u2019": "'",   # right single quotation mark
+        "\u201c": '"',   # left double quotation mark
+        "\u201d": '"',   # right double quotation mark
+        "\u2022": "",    # bullet
+        "\u2026": "...", # ellipsis
+        "\u2212": "-",   # minus sign
+        "\u00b7": " ",   # middle dot
+    }
+    for char, replacement in unicode_replacements.items():
+        text = text.replace(char, replacement)
+
     # Strip common Markdown the LLM emits (bold/italic), it is not valid LaTeX.
     text = text.replace("**", "").replace("__", "")
     # Protect backslashes first with a placeholder so later { } escaping
