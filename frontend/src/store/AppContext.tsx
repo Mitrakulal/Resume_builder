@@ -55,20 +55,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const saveProfileToBackend = useCallback(async () => {
-    try {
-      const res = await fetch("http://127.0.0.1:8000/api/profile", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(profile),
-      });
-      if (!res.ok) {
+    const res = await fetch("http://127.0.0.1:8000/api/profile", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(profile),
+    });
+    if (!res.ok) {
+      let message = "Failed to save profile";
+      try {
         const errorData = await res.json();
-        throw new Error(errorData.detail || "Failed to save profile");
+        message = errorData.detail || message;
+      } catch {
+        // ignore json parse error
       }
-      alert("Profile saved to backend successfully!");
-    } catch (err: any) {
-      console.error(err);
-      alert("Error saving profile: " + err.message);
+      throw new Error(message);
     }
   }, [profile]);
 

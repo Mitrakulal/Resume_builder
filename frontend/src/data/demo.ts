@@ -20,45 +20,63 @@ export const STATUS_LABELS: Record<ApplicationStatus, string> = {
 export interface ContactInfo {
   name: string;
   email: string;
-  phone: string;
-  location: string;
+  phone?: string;
+  location?: string;
   links: string[];
 }
 
 export interface ExperienceItem {
-  id: string;
-  title: string;
-  organization: string;
-  startDate: string;
-  endDate: string;
-  description: string;
-  skillsUsed: string[];
+  id?: string;
+  role?: string;
+  company?: string;
+  location?: string;
+  date?: string;
+  dates?: string;
+  description?: string;
+  skills?: string[];
+  bullets?: string[];
+  // Legacy / UI compat
+  title?: string;
+  organization?: string;
+  startDate?: string;
+  endDate?: string;
+  skillsUsed?: string[];
 }
 
 export interface ProjectItem {
-  id: string;
+  id?: string;
   name: string;
-  description: string;
-  skillsUsed: string[];
-  date: string;
+  technologies?: string;
+  date?: string;
+  description?: string;
+  skills?: string[];
+  bullets?: string[];
+  skillsUsed?: string[];
   link?: string;
 }
 
 export interface EducationItem {
-  id: string;
+  id?: string;
   institution: string;
   degree: string;
-  startDate: string;
-  endDate: string;
+  location?: string;
+  date?: string;
+  details?: string;
+  // Legacy / alias compat
+  school?: string;
+  year?: string;
+  startDate?: string;
+  endDate?: string;
 }
 
 export interface CandidateProfile {
   personal_info: ContactInfo;
-  professional_summary: string;
+  professional_summary?: string;
   experience: ExperienceItem[];
+  projects?: ProjectItem[];
   education: EducationItem[];
   skills: string[];
-  certifications: string[];
+  certifications?: string[];
 }
 
 export const demoProfile: CandidateProfile = {

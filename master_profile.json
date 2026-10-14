@@ -12,91 +12,214 @@
   "professional_summary": "Versatile Software and AI Engineer with deep hands-on expertise spanning Generative AI & agentic systems, full-stack microservices, computer vision, data pipelines, and cloud DevOps. Proven track record deploying production RAG assistants, building high-throughput distributed systems, training edge perception models, and engineering cloud-native infrastructure. Passionate about solving complex end-to-end engineering challenges across industries.",
   "experience": [
     {
-      "role": "AI/ML Engineer, Contract — Production RAG Knowledge Assistant",
-      "company": "mattrlabs — AI Hardware Studio",
-      "dates": "2026",
+      "company": "mattrlabs \u2014 AI Hardware Studio",
+      "role": "AI/ML Engineer, Contract \u2014 Production RAG Knowledge Assistant",
+      "location": null,
+      "date": "2026",
       "description": "Deployment: Shipped a client-facing RAG assistant answering live product, service, and pricing queries. Retrieval: Built a ChromaDB vector store with section-aware chunking and nomic-embed-text embeddings for source-attributed answers. Reliability: Added metadata-based routing and an LLM-judged fallback, replacing hardcoded confidence thresholds. Infrastructure: Served via FastAPI, deployed on a Mac Mini behind a secured Cloudflare Tunnel.",
-      "skills": ["RAG", "ChromaDB", "FastAPI", "Cloudflare Tunnel", "Embeddings", "Python", "Vector Search"]
+      "skills": [
+        "RAG",
+        "ChromaDB",
+        "FastAPI",
+        "Cloudflare Tunnel",
+        "Embeddings",
+        "Python",
+        "Vector Search"
+      ],
+      "bullets": []
     },
     {
-      "role": "Full-Stack & Cloud Software Engineer Intern",
       "company": "CloudScale Technologies",
-      "dates": "2025",
+      "role": "Full-Stack & Cloud Software Engineer Intern",
+      "location": null,
+      "date": "2025",
       "description": "Microservices: Engineered backend REST and GraphQL microservices in Node.js and FastAPI powering a multi-tenant enterprise portal. Frontend: Developed responsive, accessible dashboard UIs using React, TypeScript, and Tailwind CSS with real-time state synchronization via TanStack Query and WebSockets. Cloud & DevOps: Containerized services using Docker and orchestrated deployments on AWS ECS and EKS with automated CI/CD pipelines in GitHub Actions. Database Optimization: Scaled PostgreSQL relational databases and implemented Redis caching layers, cutting 95th percentile query latencies by 45%.",
-      "skills": ["React", "TypeScript", "Node.js", "FastAPI", "AWS", "Docker", "PostgreSQL", "Redis", "GraphQL", "CI/CD", "Tailwind CSS"]
+      "skills": [
+        "React",
+        "TypeScript",
+        "Node.js",
+        "FastAPI",
+        "AWS",
+        "Docker",
+        "PostgreSQL",
+        "Redis",
+        "GraphQL",
+        "CI/CD",
+        "Tailwind CSS"
+      ],
+      "bullets": []
     },
     {
-      "role": "Computer Vision & Robotics Engineering Intern",
       "company": "RoboTech Dynamics",
-      "dates": "2024 - 2025",
+      "role": "Computer Vision & Robotics Engineering Intern",
+      "location": null,
+      "date": "2024 - 2025",
       "description": "Perception & Deep Learning: Trained and fine-tuned real-time YOLOv8 object detection and semantic segmentation models using PyTorch and OpenCV for autonomous ground navigation. Edge Acceleration: Optimized model inference on NVIDIA Jetson Orin and Xavier platforms using TensorRT and ONNX, achieving 60+ FPS at under 15W power draw. Robotics Integration: Integrated sensor streams (LiDAR, RGB-D cameras, IMU) through ROS2 communication nodes in C++ and Python with custom Kalman filter tracking. Low-Level Optimization: Authored multi-threaded C++ camera ingestion pipelines with zero-copy shared memory queues.",
-      "skills": ["C++", "Python", "OpenCV", "PyTorch", "ROS2", "TensorRT", "NVIDIA Jetson", "ONNX", "LiDAR", "Edge AI", "Linux"]
+      "skills": [
+        "C++",
+        "Python",
+        "OpenCV",
+        "PyTorch",
+        "ROS2",
+        "TensorRT",
+        "NVIDIA Jetson",
+        "ONNX",
+        "LiDAR",
+        "Edge AI",
+        "Linux"
+      ],
+      "bullets": []
     },
     {
-      "role": "Data Engineering & MLOps Intern",
       "company": "Nexus Data Systems",
-      "dates": "2024",
+      "role": "Data Engineering & MLOps Intern",
+      "location": null,
+      "date": "2024",
       "description": "Data Ingestion & Streaming: Constructed scalable streaming and batch ETL pipelines processing 10M+ events daily using Apache Kafka and Apache Spark. Workflow Orchestration: Authored automated DAGs in Apache Airflow for data ingestion, deduplication, and loading into Snowflake and BigQuery data warehouses. MLOps Lifecycle: Standardized model tracking, artifact versioning, and registry deployment using MLflow and Docker containers with automated drift detection alerts. Quality & Governance: Enforced schema validation using Great Expectations and automated SQL data transformation models with dbt.",
-      "skills": ["Python", "Apache Kafka", "Apache Spark", "Airflow", "Snowflake", "BigQuery", "SQL", "MLflow", "dbt", "Docker"]
+      "skills": [
+        "Python",
+        "Apache Kafka",
+        "Apache Spark",
+        "Airflow",
+        "Snowflake",
+        "BigQuery",
+        "SQL",
+        "MLflow",
+        "dbt",
+        "Docker"
+      ],
+      "bullets": []
     }
   ],
   "projects": [
     {
-      "name": "AI Trip Planner — Multi-Agent Supervisor System",
+      "name": "AI Trip Planner \u2014 Multi-Agent Supervisor System",
       "technologies": "LangGraph, MCP, Ollama, OpenAI, Python, FastMCP",
       "date": "2026",
       "description": "Architecture: Designed a supervisor-based multi-agent system coordinating Travel, Weather, Food, and Budget specialist agents via LangGraph state graphs. Tool Calling: Built a custom Weather MCP server implementing Model Context Protocol and integrated live DuckDuckGo web search. Inference Flexibility: Unified hybrid local (Ollama) and cloud (OpenAI, Anthropic) inference through a single dynamic model selector with structured output verification.",
-      "skills": ["LangGraph", "LangChain", "MCP", "Ollama", "OpenAI", "Multi-Agent Systems", "Python"]
+      "skills": [
+        "LangGraph",
+        "LangChain",
+        "MCP",
+        "Ollama",
+        "OpenAI",
+        "Multi-Agent Systems",
+        "Python"
+      ],
+      "bullets": []
     },
     {
       "name": "Local LLM Chat & High-Concurrency Streaming Platform",
       "technologies": "llama.cpp, Node.js, Express, SSE, SQLite, Docker, React",
       "date": "2026",
       "description": "Engineered a low-latency ChatGPT-style platform serving locally hosted open-weight models via llama.cpp behind an OpenAI-compatible API. Streaming Gateway: Built a Node.js/Express reverse proxy with Server-Sent Events (SSE) forwarding, per-key token bucket rate limiting, and request queue fairness. Observability & Security: Designed a SQLite usage ledger, JWT-based tenant auth, and an admin analytics dashboard for monitoring GPU utilization and token generation throughput.",
-      "skills": ["llama.cpp", "Node.js", "Express", "SSE", "SQLite", "Docker", "JWT", "REST APIs"]
+      "skills": [
+        "llama.cpp",
+        "Node.js",
+        "Express",
+        "SSE",
+        "SQLite",
+        "Docker",
+        "JWT",
+        "REST APIs"
+      ],
+      "bullets": []
     },
     {
       "name": "Autonomous Drone Vision & Obstacle Avoidance Pipeline",
       "technologies": "C++, OpenCV, PyTorch, ROS2, NVIDIA Jetson, Gazebo",
       "date": "2025",
       "description": "Built an autonomous vision pipeline for quadcopter navigation in GPS-denied environments. Visual Odometry: Implemented feature-based visual-inertial odometry in C++ using OpenCV and optical flow. Neural Obstacle Detection: Deployed quantized PyTorch depth estimation models to an onboard Jetson board with TensorRT acceleration, achieving sub-20ms reaction times. Simulation & Testing: Validated flight algorithms across 100+ simulated obstacle course scenarios in ROS2 Gazebo before hardware field trials.",
-      "skills": ["C++", "OpenCV", "PyTorch", "ROS2", "TensorRT", "NVIDIA Jetson", "Robotics", "Computer Vision"]
+      "skills": [
+        "C++",
+        "OpenCV",
+        "PyTorch",
+        "ROS2",
+        "TensorRT",
+        "NVIDIA Jetson",
+        "Robotics",
+        "Computer Vision"
+      ],
+      "bullets": []
     },
     {
       "name": "Distributed Microservices E-Commerce & Payment Engine",
       "technologies": "Go, React, TypeScript, Kafka, PostgreSQL, Redis, Kubernetes, Stripe",
       "date": "2025",
       "description": "Architected an event-driven e-commerce platform handling checkout, inventory locking, and payment workflows. Distributed Transactions: Implemented Saga pattern across Order and Payment microservices using Apache Kafka to prevent duplicate charges and race conditions. High Availability: Deployed services onto a multi-node Kubernetes cluster with Horizontal Pod Autoscaling (HPA) and Nginx Ingress routing. Frontend Experience: Built a high-performance storefront in Next.js and Tailwind CSS with server-side rendering (SSR) and Stripe Elements checkout.",
-      "skills": ["Go", "React", "Next.js", "TypeScript", "Kafka", "PostgreSQL", "Redis", "Kubernetes", "Docker", "Stripe API"]
+      "skills": [
+        "Go",
+        "React",
+        "Next.js",
+        "TypeScript",
+        "Kafka",
+        "PostgreSQL",
+        "Redis",
+        "Kubernetes",
+        "Docker",
+        "Stripe API"
+      ],
+      "bullets": []
     },
     {
       "name": "Real-Time Financial Fraud Detection & Streaming Analytics",
       "technologies": "Python, Apache Spark, Kafka, Scikit-Learn, Snowflake, Grafana",
       "date": "2024",
       "description": "Developed a real-time anomaly detection engine scoring financial transactions against historical fraud patterns. Stream Processing: Consumed high-velocity transaction streams through Apache Kafka with Spark Streaming sliding-window aggregations. Machine Learning: Trained an ensemble Isolation Forest and XGBoost model achieving 98.4% detection accuracy with less than 0.5% false positives. Dashboarding: Streamed alerts to Grafana and Webhook endpoints with automated card suspension triggers.",
-      "skills": ["Python", "Apache Spark", "Kafka", "Scikit-Learn", "Machine Learning", "Snowflake", "Grafana", "SQL"]
+      "skills": [
+        "Python",
+        "Apache Spark",
+        "Kafka",
+        "Scikit-Learn",
+        "Machine Learning",
+        "Snowflake",
+        "Grafana",
+        "SQL"
+      ],
+      "bullets": []
     },
     {
       "name": "Cross-Platform Telehealth & Remote Patient Monitoring App",
       "technologies": "React Native, TypeScript, WebRTC, Firebase, GraphQL, Node.js",
       "date": "2024",
       "description": "Engineered an iOS and Android telehealth consultation app enabling encrypted video calls and vital signs tracking. Real-Time Video: Integrated peer-to-peer WebRTC video calling with adaptive bitrate management under unstable mobile network conditions. Data Sync: Utilized Firebase Firestore and GraphQL subscriptions for real-time doctor-patient chat, appointment scheduling, and prescription generation.",
-      "skills": ["React Native", "TypeScript", "WebRTC", "Firebase", "GraphQL", "Mobile App Development", "iOS", "Android"]
+      "skills": [
+        "React Native",
+        "TypeScript",
+        "WebRTC",
+        "Firebase",
+        "GraphQL",
+        "Mobile App Development",
+        "iOS",
+        "Android"
+      ],
+      "bullets": []
     },
     {
       "name": "Zero-Trust API Gateway & Security Vulnerability Scanner",
       "technologies": "Python, Docker, OWASP ZAP, Redis, JWT, OAuth2, Linux",
       "date": "2024",
       "description": "Built a defensive cybersecurity gateway inspecting inbound HTTP payloads for SQL injection, XSS, and broken object-level authorization (BOLA). Automated Scanning: Automated dynamic application security testing (DAST) pipelines using OWASP ZAP in GitHub Actions. Identity & Access: Implemented OAuth2 PKCE flow with signed JWT token revocation checks against high-speed Redis stores.",
-      "skills": ["Python", "Cybersecurity", "OAuth2", "JWT", "OWASP", "Redis", "Docker", "Linux"]
+      "skills": [
+        "Python",
+        "Cybersecurity",
+        "OAuth2",
+        "JWT",
+        "OWASP",
+        "Redis",
+        "Docker",
+        "Linux"
+      ],
+      "bullets": []
     }
   ],
   "education": [
     {
+      "institution": "Sahyadri College of Engineering and Management",
       "degree": "B.E. in Artificial Intelligence and Machine Learning | CGPA: 8.75 / 10.0",
-      "school": "Sahyadri College of Engineering and Management",
       "location": "Mangaluru, Karnataka",
-      "year": "Expected 2028"
+      "date": "Expected 2028",
+      "details": null
     }
   ],
   "skills": [
@@ -174,7 +297,7 @@
     "fine-tuning"
   ],
   "certifications": [
-    "AWS Certified Solutions Architect — Associate",
+    "AWS Certified Solutions Architect \u2014 Associate",
     "DeepLearning.AI: Deep Learning Specialization",
     "2nd Place, TechSprint 2025 National Hackathon",
     "12th Nationally, IIT Bombay Techfest 2024 Robotics Competition",

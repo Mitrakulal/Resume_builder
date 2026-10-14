@@ -25,6 +25,7 @@ class ProjectItem(BaseModel):
     technologies: Optional[str] = None
     date: Optional[str] = Field(default=None, validation_alias=AliasChoices("date", "dates", "year"))
     description: Optional[str] = None
+    skills: List[str] = Field(default_factory=list)
     bullets: List[str] = Field(default_factory=list)
 
 
