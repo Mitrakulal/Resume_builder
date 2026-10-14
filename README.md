@@ -1,167 +1,209 @@
-# Resume Agent
+# AI Resume Agent & Tailoring Engine
 
-An AI-powered resume tailoring pipeline. Paste in a job description (JD) and get back a tailored, compiled PDF resume — grounded strictly in your real experience from a single `master_profile.json` source of truth. No invented employers, titles, dates, or skills.
+An end-to-end, agentic AI platform that takes any Job Description (JD) and generates a tailored, ATS-optimized, high-impact PDF resume in seconds. Grounded strictly in your real-world experience from a single `master_profile.json` source of truth — **no invented jobs, titles, metrics, or hallucinated skills**.
 
-Built with **LangGraph** orchestration, **LangChain** structured output, **Jinja2 + LaTeX** rendering, and **MiKTeX/pdflatex** compilation.
+Built with **LangGraph** workflow orchestration, **LangChain** structured JSON outputs, **FastAPI** backend with real-time Server-Sent Events (SSE) streaming, a modern **React + Vite** SaaS frontend, **Jinja2 + LaTeX** document typesetting, and **MiKTeX/pdflatex** engine.
 
-## How it works
+---
 
-Linear LangGraph pipeline — every node runs exactly once per invocation:
+## Architecture Overview
 
 ```
-JD text + profile path
-        |
-        v
-  read_jd --> load_profile --> match --> generate_content --> render --> compile --> resume.pdf
+                                      +------------------------+
+                                      |   Job Description (JD) |
+                                      +-----------+------------+
+                                                  |
+                                                  v
++--------------------------------------------------------------------------------------------------+
+|                                    LangGraph Orchestration Pipeline                              |
+|                                                                                                  |
+|   [read_jd]  ======>  [load_profile]  ======>  [match]  ======>  [generate_content]  ===> [render]|
+|  (LLM Extractor)     (Profile Loader)      (Gap & Matcher)       (Tailored Synthesis)   (Jinja2) |
++------------------------------------------------------------------------------------------+-------+
+                                                                                           |
+                                                                                           v
+                                                                                      [compile]
+                                                                                   (pdflatex subprocess)
+                                                                                           |
+                                                                                           v
+                                                                                  output/resume.pdf
 ```
 
-| Node | Type | What it does |
-|------|------|--------------|
-| `read_jd` | LLM (structured output) | Extracts `JDRequirements`: job title, company, must-have / nice-to-have skills, responsibilities, keywords |
-| `load_profile` | Deterministic Python | Reads `master_profile.json`, validates it against `CandidateProfile` (Pydantic). Returns clear errors on missing file / bad JSON / schema mismatch |
-| `match` | Deterministic Python | Case-insensitive skill intersection: `matched_skills`, `gap_areas`, relevant experience, `relevance_score` |
-| `generate_content` | LLM (structured output) | Writes tailored `ResumeContent` using **only facts from the profile** — selection, ranking, and rewording, never invention |
-| `render` | Jinja2 + Python | LaTeX-escapes all content in code and renders `templates/resume_template.tex.jinja` → `output/resume.tex` |
-| `compile` | `pdflatex` subprocess | Compiles `output/resume.tex` → `output/resume.pdf` (non-zero exit = hard failure with compiler output) |
+### The 5 Pipeline Nodes
 
-Shared state (`state.py: ResumeAgentState`): `jd_raw_text`, `profile_path`, `jd_requirements`, `candidate_profile`, `matched_items`, `resume_content`, `rendered_tex_path`, `output_pdf_path`, `error`.
+| Node | Type | Description |
+|------|------|-------------|
+| **`read_jd`** | LLM (Structured) | Extracts `JDRequirements`: job title, company, key responsibilities, must-have/nice-to-have skills, and domain keywords. |
+| **`load_profile`** | Deterministic Python | Loads `master_profile.json` into a validated `CandidateProfile` Pydantic model with automatic field aliasing (`dates` $\to$ `date`, `school` $\to$ `institution`). |
+| **`match`** | Deterministic Python | Intersects candidate skills and experiences against JD requirements; computes `matched_skills`, `gap_areas`, matched experiences, and a `relevance_score`. |
+| **`generate_content`** | LLM (Strict Schema) | Rewrites and synthesizes 2–4 action-oriented, tailored bullet points (`bullets: List[str]`) per experience/project, categorizes skills (`SkillCategory`), and crafts a targeted professional summary. |
+| **`render`** | Jinja2 + Python | Recursively normalizes Unicode characters (narrow spaces, non-breaking hyphens, smart quotes), escapes LaTeX special characters (`& % $ # _ { } ~ ^ \`), and renders `templates/resume_template.tex.jinja` $\to$ `output/resume.tex`. |
+| **`compile`** | `pdflatex` Subprocess | Compiles `output/resume.tex` into a publication-ready `output/resume.pdf` with automated font mapping and ATS micro-typesetting. |
 
-## Tech stack
+---
 
-| Layer | Technology |
-|-------|-----------|
-| Orchestration | LangGraph (`StateGraph`) |
-| LLM / structured output | LangChain (`ChatOpenAI` OpenAI-compatible interface + `with_structured_output`) |
-| Validation | Pydantic v2 (`schemas/`) |
-| Template rendering | Jinja2 |
-| PDF compilation | MiKTeX `pdflatex` (auto-detected on `PATH` or `%LOCALAPPDATA%\Programs\MiKTeX\...`) |
-| Frontend (SaaS UI) | React 19 + TypeScript + Vite + Lucide Icons + Custom Modern Design System |
-| Tracing | LangSmith (optional, via `.env`) |
-| Runtime | Python 3.10+ & Node.js 18+ |
+## Tech Stack
 
-## Project structure
+### Backend
+* **Orchestration:** LangGraph (`StateGraph`)
+* **LLM Layer:** LangChain `ChatOpenAI` supporting OpenAI, Groq, local inference (Ollama, llama.cpp, vLLM)
+* **Data Validation:** Pydantic v2 with Strict Structured Output validation
+* **Web Server:** FastAPI + Uvicorn with asynchronous background task runners
+* **Streaming:** Server-Sent Events (SSE) for real-time node execution progress
+* **Typesetting Engine:** Jinja2 templating + MiKTeX (`pdflatex`)
+
+### Frontend
+* **Framework:** React 19 + TypeScript + Vite
+* **Styling:** Tailwind CSS + Framer Motion (directional InView scroll animations, defocus blur reveals)
+* **Icons:** Lucide React
+* **State Management:** React Context API with persistent application tracking
+
+---
+
+## Repository Structure
 
 ```
 resume-agent/
-├── frontend/                  # Modern SaaS React + TypeScript web app
-│   ├── src/                   # Components, state, styles, mock simulation
-│   └── package.json           # Vite build & scripts
-├── graph.py                   # LangGraph StateGraph wiring (START -> ... -> END)
-├── state.py                   # ResumeAgentState TypedDict
-├── config.py                  # Model tier / endpoint config
-├── run.py                     # CLI entrypoint (stub — use test.py for now)
-├── test.py                    # End-to-end runner: LLM checks + graph.ainvoke
-├── master_profile.json        # Single source of truth for all resume facts
-├── nodes/                     # read_jd, load_profile, match, generate_content, render, compile
-├── schemas/                   # candidate_profile, jd_requirements, matched_items, resume_content
-├── templates/resume_template.tex.jinja
-├── output/                    # Generated resume.tex / resume.pdf (gitignored)
-├── Docs/                      # Spec (resume_agent_spec_v1.md), build log
-└── .env.example               # Copy to .env and fill in keys
+├── api.py                           # FastAPI REST API & SSE streaming endpoints
+├── graph.py                         # LangGraph StateGraph pipeline wiring
+├── state.py                         # ResumeAgentState TypedDict definition
+├── master_profile.json              # Source of truth candidate profile across multiple domains
+├── nodes/                           # Pipeline processing nodes
+│   ├── read_jd.py                   # JD requirement extractor
+│   ├── load_profile.py              # Candidate profile loader & validator
+│   ├── match.py                     # Skill matching & scoring logic
+│   ├── generate_content.py          # LLM resume synthesis & bullet generator
+│   ├── render.py                    # LaTeX recursive escaper & Jinja template renderer
+│   └── compile.py                   # pdflatex compiler subprocess runner
+├── schemas/                         # Pydantic v2 schemas
+│   ├── candidate_profile.py         # PersonalInfo, ExperienceItem, ProjectItem, EducationItem
+│   ├── jd_requirements.py           # JDRequirements schema
+│   ├── matched_items.py             # MatchedItems schema
+│   └── resume_content.py            # ResumeContent and SkillCategory strict output models
+├── templates/
+│   └── resume_template.tex.jinja    # Jake's Resume style ATS-optimized LaTeX template
+├── output/                          # Generated resume.tex, resume.pdf, and compile logs (gitignored)
+├── frontend/                        # React SaaS Application
+│   ├── src/
+│   │   ├── pages/                   # Landing, NewApplication, MatchView, Profile, Portfolio
+│   │   ├── components/              # PipelineRunner, UI primitives, InView animations
+│   │   └── store/                   # AppContext state & backend sync
+│   └── package.json                 # Frontend dependencies
+├── requirements.txt                 # Backend Python dependencies
+└── .env.example                     # Environment template
 ```
+
+---
 
 ## Prerequisites
 
-- Python 3.10+
-- MiKTeX with `pdflatex` (Windows: auto-detected at `%LOCALAPPDATA%\Programs\MiKTeX\miktex\bin\x64\pdflatex.exe` even if not on `PATH`)
-- An OpenAI-compatible LLM gateway for `read_jd` / `generate_content` (see Configuration)
+1. **Python 3.10+**
+2. **Node.js 18+ & npm**
+3. **MiKTeX with pdflatex**
+   - Windows: Automatically detected at `%LOCALAPPDATA%\Programs\MiKTeX\miktex\bin\x64\pdflatex.exe` or via `PATH`.
+4. **LLM API Key** (Groq, OpenAI, or a local OpenAI-compatible endpoint like Ollama/llama.cpp).
 
-## Setup
+---
+
+## Getting Started
+
+### 1. Backend Setup
 
 ```powershell
-# 1. Virtual environment
+# Navigate to project root
+cd c:\Users\kulal\resume-agent
+
+# Create and activate virtual environment
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
-pip install langgraph langchain langchain-openai pydantic python-dotenv jinja2
 
-# 2. Environment
+# Install dependencies
+pip install -r requirements.txt
+# (or: pip install langgraph langchain langchain-openai pydantic python-dotenv jinja2 fastapi uvicorn httpx)
+
+# Setup environment variables
 copy .env.example .env
-# edit .env and set your keys / endpoints
-
-# 3. Profile
-# Edit master_profile.json with your real experience — the agent never writes to it,
-# it only reads from it.
 ```
 
-## Configuration
-
-Copy `.env.example` to `.env`:
-
+Configure your `.env` file:
 ```ini
-LANGSMITH_TRACING=true
-LANGSMITH_ENDPOINT=https://api.smith.langchain.com
-LANGSMITH_API_KEY=your-langsmith-api-key
-LANGSMITH_PROJECT=resume-agent
+# Groq Example (Ultra-fast structured outputs)
+OPENAI_API_KEY=your_groq_or_openai_api_key
+CLOUD_ENDPOINT=https://api.groq.com/openai/v1
+OPENAI_MODEL=llama-3.3-70b-versatile
 
-GEMMA_API_KEY=
-GEMMA_BASE_URL=http://127.0.0.1:8787/v1
-GEMMA_MODEL=gemma-e2b
-GEMMA_MAX_TOKENS=2048
+# Or standard OpenAI
+# OPENAI_API_KEY=sk-...
+# OPENAI_MODEL=gpt-4o
 ```
 
-`nodes/read_jd.py` and `nodes/generate_content.py` build their `ChatOpenAI` client from `GEMMA_MODEL` / `GEMMA_API_KEY` / `GEMMA_BASE_URL` / `GEMMA_MAX_TOKENS`. The gateway must be reachable or those nodes raise `OpenAIConnectionError`.
-
-## Usage
-
-`test.py` is the current end-to-end entrypoint (`run.py --jd --profile --out` CLI from the spec is not implemented yet):
-
+Start the FastAPI server:
 ```powershell
-.\.venv\Scripts\python.exe test.py
+uvicorn api:app --reload --port 8000
 ```
+Backend will be live at `http://127.0.0.1:8000` (API documentation at `http://127.0.0.1:8000/docs`).
 
-It runs:
+---
 
-1. `test_structured_output()` — verifies the gateway supports `JDRequirements` structured output.
-2. `test_resume_content_output()` — verifies the larger `ResumeContent` structured output with a fixed Python-backend JD.
-3. Full `graph.ainvoke({"jd_raw_text": JD_TEXT, "profile_path": "master_profile.json"})` — prints the tailored `resume_content` JSON plus:
+### 2. Frontend Setup
 
+In a new terminal:
+```powershell
+cd c:\Users\kulal\resume-agent\frontend
+
+# Install dependencies
+npm install
+
+# Start Vite development server
+npm run dev
 ```
-Rendered LaTeX: C:\...\output\resume.tex
-Generated PDF: C:\...\output\resume.pdf
-```
+Frontend will be live at `http://localhost:5173`.
 
-### Customizing the JD
+---
 
-Edit `JD_TEXT` in `test.py`:
+## Key Features & Design Highlights
 
-```python
-JD_TEXT = """
-We are looking for a Python backend developer.
-Required skills include Python and REST APIs.
-Experience with FastAPI is preferred.
-"""
-```
+### 1. Strict Grounding Guarantee
+The LLM is prompted with strict constraints:
+- **No Inventions:** Will never fabricate unmentioned companies, degrees, tools, or dates.
+- **Dynamic Bullet Generation:** Reads the candidate's raw background descriptions and synthesizes 2 to 4 crisp, action-verb driven bullets tailored directly to the JD requirements.
+- **Reframing Over Deletion:** If a candidate has transferable skills in an adjacent domain, the agent reframes their core systems and software engineering achievements rather than returning a blank section.
 
-### Customizing the profile
+### 2. Classified Technical Skills
+Instead of dumping skills into a flat list, skills are classified using `List[SkillCategory]` complying with OpenAI/Groq's strict schema validator (`additionalProperties: false`):
+* **Languages:** TypeScript, Python, C++, SQL, Go
+* **Frameworks & Libraries:** React, Next.js, FastAPI, Node.js, PyTorch
+* **Databases & Storage:** PostgreSQL, Redis, MongoDB, Snowflake
+* **Cloud & DevOps:** AWS, Docker, Kubernetes, CI/CD, Git
 
-Edit `master_profile.json` (schema: `schemas/candidate_profile.py`). The agent reads it but never writes to it.
+### 3. LaTeX Escaping & Unicode Sanitization
+LLMs frequently output non-standard typographical characters that crash standard `pdflatex`. The custom recursive escaper in [`nodes/render.py`](nodes/render.py) automatically handles:
+* Narrow no-break spaces (`U+202F`) $\to$ regular spaces
+* Non-breaking hyphens (`U+2011`) $\to$ `-`
+* Smart quotes & en/em dashes $\to$ ASCII/LaTeX quotes and `--` / `---`
+* LaTeX special characters (`&`, `%`, `$`, `#`, `_`, `{`, `}`, `~`, `^`) safely escaped.
 
-## Output
+### 4. Real-time SSE Pipeline Runner
+The frontend uses Server-Sent Events to stream the live execution state of the LangGraph pipeline:
+1. `read_jd` $\to$ Parsing responsibilities and keywords.
+2. `load_profile` $\to$ Loading master profile data.
+3. `match` $\to$ Computing skill overlap and gap analysis.
+4. `generate_content` $\to$ Synthesizing tailored experience bullets.
+5. `render` & `compile` $\to$ Typesetting and generating the final PDF.
 
-- `output/resume.tex` — rendered LaTeX (all dynamic content LaTeX-escaped in `render.py`, never by the LLM)
-- `output/resume.pdf` — compiled PDF (check `output/resume.log` on failure)
+---
 
-The template (`templates/resume_template.tex.jinja`) is a single fixed `article`-class layout with Professional Summary, Experience, Skills, Education, and Certifications sections rendered as `itemize` lists.
+## API Reference
 
-## Factuality guarantee
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/profile` | `GET` | Fetches the current `master_profile.json`. |
+| `/api/profile` | `POST` | Validates and updates `master_profile.json` using `CandidateProfile` schema. |
+| `/api/tailor` | `POST` | Starts a background resume tailoring job. Accepts `{ "jd_text": "..." }`, returns `{ "job_id": "...", "status": "started" }`. |
+| `/api/tailor/{job_id}/stream` | `GET` | SSE stream emitting node completion events and final PDF URL. |
+| `/api/tailor/{job_id}/pdf` | `GET` | Downloads or previews the generated PDF file. |
 
-- `generate_content` is explicitly prompted: use only facts from the candidate profile; do not invent companies, dates, technologies, achievements, metrics, or skills.
-- `render.py` strips LLM Markdown (`**`, `__`) and escapes LaTeX specials (`& % $ # _ { } ~ ^ \`) before injection.
-- `master_profile.json` is read-only for the agent.
+---
 
-## Troubleshooting
-
-| Symptom | Cause / fix |
-|---------|-------------|
-| `OpenAIConnectionError: Connection error` in `test.py` | LLM gateway at `GEMMA_BASE_URL` is down or needs auth. Start it / check `.env`, then re-run. |
-| `Misplaced alignment tab character &` / LaTeX failure | Fixed in `render.py` — specials are escaped in code. If you add new template placeholders, pass values through `_escape_latex`. |
-| `pdflatex was not found` | Install MiKTeX or add its `bin\x64` folder to `PATH`. The node also checks `%LOCALAPPDATA%\Programs\MiKTeX\miktex\bin\x64\pdflatex.exe`. |
-| `LaTeX compilation failed` | Read `output/resume.log`; non-zero exit surfaces stdout/stderr with no retry (per spec). |
-| `Profile file not found / Invalid JSON / Invalid profile structure` | `load_profile` returns `state["error"]` — check `profile_path` and validate against `schemas/candidate_profile.py`. |
-
-## Roadmap
-
-- [ ] Implement `run.py` CLI (`--jd path/to/jd.txt --profile master_profile.json --out output/resume.pdf`, exit non-zero on `state["error"]`)
-- [ ] Surface `state["error"]` with graph halt instead of downstream `KeyError`
-- [ ] Restore `config.py` local/cloud tier split (currently all nodes use the `GEMMA_*` gateway)
-- [ ] Spec alignment: nested `contact`/`projects` profile shape, Tectonic option, multi-template support
+## License
+MIT License. Created by [Mitra Kulal](https://github.com/kulalmitra).
