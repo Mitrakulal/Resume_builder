@@ -33,11 +33,15 @@ def _escape_latex(value):
     return text
 
 
-def _escape_sections(sections):
-    return {
-        key: [_escape_latex(item) for item in values]
-        for key, values in sections.items()
-    }
+def _escape_latex_recursive(data):
+    """Recursively escape strings for LaTeX across dicts, lists, and primitives."""
+    if isinstance(data, str):
+        return _escape_latex(data)
+    elif isinstance(data, list):
+        return [_escape_latex_recursive(item) for item in data]
+    elif isinstance(data, dict):
+        return {key: _escape_latex_recursive(value) for key, value in data.items()}
+    return data
 
 
 async def render(state):
@@ -50,24 +54,9 @@ async def render(state):
     template = environment.get_template("resume_template.tex.jinja")
     candidate_profile = state["candidate_profile"]
     resume_content = state["resume_content"]
-    personal_info = {
-        key: _escape_latex(value)
-        for key, value in candidate_profile.personal_info.model_dump().items()
-        if value is not None
-    }
-    content = resume_content.model_dump()
-    content["professional_summary"] = _escape_latex(
-        content["professional_summary"] or ""
-    )
-    content.update(
-        _escape_sections(
-            {
-                key: value
-                for key, value in content.items()
-                if isinstance(value, list)
-            }
-        )
-    )
+
+    personal_info = _escape_latex_recursive(candidate_profile.personal_info.model_dump())
+    content = _escape_latex_recursive(resume_content.model_dump())
 
     rendered_tex = template.render(personal_info=personal_info, content=content)
 

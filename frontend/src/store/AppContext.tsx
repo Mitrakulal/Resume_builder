@@ -15,7 +15,7 @@ interface AppContextValue {
   saveProfileToBackend: () => Promise<void>;
   applications: Application[];
   getApplication: (id: string) => Application | undefined;
-  createApplication: (role: string, company: string, jdId: string) => Application;
+  createApplication: (role: string, company: string, jdId: string, customId?: string) => Application;
   updateApplication: (id: string, patch: Partial<Application>) => void;
   deleteApplication: (id: string) => void;
   tone: Tone;

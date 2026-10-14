@@ -8,24 +8,26 @@
   "professional_summary": "AI/ML engineering student specializing in agentic systems, retrieval-augmented generation, and local LLM inference (Ollama, llama.cpp). Shipped a production RAG system for a live client. Seeking a Generative AI / LLM internship to apply this retrieval and local-inference experience toward fine-tuning, knowledge graph retrieval, and real-time voice AI pipelines.",
   "experience": [
     {
-      "role": "AI/ML Engineer, Contract \u2014 Production RAG Knowledge Assistant",
-      "company": "mattrlabs \u2014 AI Hardware Studio",
+      "role": "AI/ML Engineer, Contract — Production RAG Knowledge Assistant",
+      "company": "mattrlabs — AI Hardware Studio",
       "dates": "2026",
       "description": "Deployment: Shipped a client-facing RAG assistant answering live product, service, and pricing queries. Retrieval: Built a ChromaDB vector store with section-aware chunking and nomic-embed-text embeddings for source-attributed answers. Reliability: Added metadata-based routing and an LLM-judged fallback, replacing hardcoded confidence thresholds. Infrastructure: Served via FastAPI, deployed on a Mac Mini behind a secured Cloudflare Tunnel.",
       "skills": ["RAG", "ChromaDB", "FastAPI", "Cloudflare Tunnel", "Embeddings"]
-    },
+    }
+  ],
+  "projects": [
     {
-      "role": "AI Trip Planner \u2014 Personal / Hackathon Project",
-      "company": "GitHub",
-      "dates": "2026",
+      "name": "AI Trip Planner",
+      "technologies": "LangGraph, MCP, Ollama, OpenAI, Multi-Agent Systems",
+      "date": "2026",
       "description": "Architecture: Designed a supervisor-based multi-agent system coordinating Travel, Weather, Food, and Budget agents via LangGraph. Tooling: Built a custom Weather MCP server and integrated live web search. Flexibility: Runs on local (Ollama) or cloud (OpenAI, Anthropic, Google) inference from a single model configuration.",
       "skills": ["LangGraph", "MCP", "Ollama", "OpenAI", "Multi-Agent Systems"]
     },
     {
-      "role": "Local LLM Chat & API Platform",
-      "company": "Mattr Chat \u2014 Personal Infrastructure Project",
-      "dates": "2026",
-      "description": "Inference: Built the backend for a ChatGPT-style local LLM chat platform \u2014 locally hosted model via llama.cpp behind an OpenAI-compatible streaming API, integrated with a web chat UI. Streaming: Engineered a Node.js/Express gateway with Server-Sent Events (SSE) forwarding and per-key request fairness for low-latency generation. Observability: Added a SQLite usage ledger and a private console for key issuance and capacity monitoring.",
+      "name": "Local LLM Chat & API Platform",
+      "technologies": "llama.cpp, Node.js, Express, SSE, SQLite",
+      "date": "2026",
+      "description": "Inference: Built the backend for a ChatGPT-style local LLM chat platform — locally hosted model via llama.cpp behind an OpenAI-compatible streaming API, integrated with a web chat UI. Streaming: Engineered a Node.js/Express gateway with Server-Sent Events (SSE) forwarding and per-key request fairness for low-latency generation. Observability: Added a SQLite usage ledger and a private console for key issuance and capacity monitoring.",
       "skills": ["llama.cpp", "Node.js", "Express", "SSE", "SQLite"]
     }
   ],

@@ -5,6 +5,8 @@ import { Navbar, Footer } from "../components/layout.tsx";
 import { ButtonLink, Chip, SectionHeading, Reveal, DemoBadge, Card } from "../components/ui.tsx";
 import { PIPELINE_STAGES } from "../lib/pipeline.ts";
 import { testimonials, faqs, pricingTiers, demoNotice } from "../data/demo.ts";
+import { InView } from "@/components/motion-primitives/in-view";
+import { TextEffect } from "@/components/motion-primitives/text-effect";
 
 /* ------------------------- Pipeline mockup visual ------------------------ */
 
@@ -178,7 +180,7 @@ function StatsStrip() {
     <section aria-label="Key numbers" className="border-y border-ink/10 bg-parchment">
       <div className="mx-auto grid max-w-7xl grid-cols-2 divide-x divide-ink/10 px-5 sm:px-8 lg:grid-cols-4">
         {stats.map((s, i) => (
-          <Reveal key={s.label} delay={i * 0.07} className="px-6 py-8 text-center lg:py-10">
+          <Reveal key={s.label} delay={i * 0.07} from={i % 2 === 0 ? "left" : "right"} className="px-6 py-8 text-center lg:py-10">
             <p className="font-display text-4xl font-semibold text-ink lg:text-5xl">{s.value}</p>
             <p className="mt-2 text-sm font-medium text-inksoft">{s.label}</p>
           </Reveal>
@@ -201,7 +203,7 @@ function HowItWorks() {
         />
         <div className="mt-14 grid gap-5 md:grid-cols-3 lg:grid-cols-5">
           {PIPELINE_STAGES.map((stage, i) => (
-            <Reveal key={stage.id} delay={i * 0.08} className="h-full">
+            <Reveal key={stage.id} delay={i * 0.07} from={i % 2 === 0 ? "left" : "right"} className="h-full">
               <Card className="flex h-full flex-col p-6">
                 <span className="font-display text-5xl font-semibold text-accent">{String(i + 1).padStart(2, "0")}</span>
                 <h3 className="mt-4 text-[17px] leading-snug font-semibold">{stage.title}</h3>
@@ -209,6 +211,159 @@ function HowItWorks() {
               </Card>
             </Reveal>
           ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function InViewInteractiveShowcase() {
+  return (
+    <section className="relative border-y border-ink/8 bg-gradient-to-b from-cream via-peach/15 to-cream py-24 sm:py-32">
+      <div className="mx-auto max-w-5xl px-5 sm:px-8">
+        <div className="text-center">
+          <Chip className="bg-peach text-ink font-semibold">Stage-by-Stage Agent</Chip>
+          <h2 className="font-display mt-4 text-3xl font-bold tracking-tight text-ink sm:text-5xl">
+            Watch the Agent Work as You Scroll
+          </h2>
+          <p className="mx-auto mt-3 max-w-2xl text-base text-inksoft sm:text-lg">
+            Every step triggers organically as you scroll down the page, analyzing requirements, matching evidence, and compiling LaTeX.
+          </p>
+        </div>
+
+        {/* Vertical stream directly tied to window/page scroll */}
+        <div className="relative mt-20 space-y-28">
+          {/* Subtle center vertical guide line */}
+          <div className="absolute left-1/2 top-4 bottom-4 w-px -translate-x-1/2 bg-gradient-to-b from-transparent via-ink/15 to-transparent hidden md:block" />
+
+          {/* Step 01: Blur & Rise */}
+          <div className="relative flex justify-center">
+            <InView
+              variants={{
+                hidden: {
+                  opacity: 0,
+                  y: 45,
+                  scale: 0.94,
+                  filter: "blur(8px)",
+                },
+                visible: {
+                  opacity: 1,
+                  y: 0,
+                  scale: 1,
+                  filter: "blur(0px)",
+                },
+              }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
+              viewOptions={{ margin: "0px 0px -100px 0px" }}
+              className="w-full max-w-xl"
+            >
+              <div className="relative rounded-3xl border border-ink/10 bg-white p-7 shadow-soft hover:shadow-card transition-shadow">
+                <div className="flex items-center justify-between border-b border-ink/8 pb-4 mb-4">
+                  <div className="flex items-center gap-2.5">
+                    <span className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-500/10 text-xs font-bold text-emerald-600">
+                      01
+                    </span>
+                    <span className="text-sm font-semibold text-ink">JD Decomposition Node</span>
+                  </div>
+                  <span className="rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-medium text-emerald-600">
+                    Active Extraction
+                  </span>
+                </div>
+                <h3 className="font-display text-xl font-bold text-ink">Deep Requirement Extraction</h3>
+                <p className="mt-2 text-sm leading-relaxed text-inksoft">
+                  The agent scans the Job Description, identifying hidden keyword weights, required tech stack constraints, and core behavioral expectations.
+                </p>
+                <div className="mt-4 flex flex-wrap gap-2 text-xs">
+                  <span className="rounded-md bg-cream px-2 py-1 text-ink font-mono font-medium">PyTorch</span>
+                  <span className="rounded-md bg-cream px-2 py-1 text-ink font-mono font-medium">RAG</span>
+                  <span className="rounded-md bg-cream px-2 py-1 text-ink font-mono font-medium">Quantization</span>
+                </div>
+              </div>
+            </InView>
+          </div>
+
+          {/* Step 02: Slide In From Right */}
+          <div className="relative flex justify-center">
+            <InView
+              variants={{
+                hidden: {
+                  opacity: 0,
+                  x: 90,
+                },
+                visible: {
+                  opacity: 1,
+                  x: 0,
+                },
+              }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
+              viewOptions={{ margin: "0px 0px -100px 0px" }}
+              className="w-full max-w-xl"
+            >
+              <div className="relative rounded-3xl border border-accent/20 bg-accent/5 p-7 shadow-soft hover:shadow-card transition-shadow">
+                <div className="flex items-center justify-between border-b border-accent/15 pb-4 mb-4">
+                  <div className="flex items-center gap-2.5">
+                    <span className="flex h-7 w-7 items-center justify-center rounded-full bg-accent text-xs font-bold text-white">
+                      02
+                    </span>
+                    <span className="text-sm font-semibold text-ink">Semantic Match Engine</span>
+                  </div>
+                  <span className="rounded-full bg-accent/15 px-2.5 py-0.5 text-xs font-semibold text-accentdeep">
+                    94% High Confidence
+                  </span>
+                </div>
+                <h3 className="font-display text-xl font-bold text-ink">Zero-Hallucination Evidence Mapping</h3>
+                <p className="mt-2 text-sm leading-relaxed text-inksoft">
+                  Every bullet point maps strictly to verified experiences in your master profile. Missing skills are honestly flagged rather than fabricated.
+                </p>
+                <div className="mt-4 rounded-xl bg-white/80 p-3 border border-ink/8 text-xs text-inksoft">
+                  ✓ Verified: <strong className="text-ink">Mattr Labs RAG project</strong> matches requirements for LLM deployment.
+                </div>
+              </div>
+            </InView>
+          </div>
+
+          {/* Step 03: Scale & Perspective Zoom */}
+          <div className="relative flex justify-center">
+            <InView
+              variants={{
+                hidden: {
+                  opacity: 0,
+                  scale: 0.85,
+                  y: 40,
+                },
+                visible: {
+                  opacity: 1,
+                  scale: 1,
+                  y: 0,
+                },
+              }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
+              viewOptions={{ margin: "0px 0px -100px 0px" }}
+              className="w-full max-w-xl"
+            >
+              <div className="relative rounded-3xl border border-ink bg-ink p-7 text-cream shadow-2xl">
+                <div className="flex items-center justify-between border-b border-cream/15 pb-4 mb-4">
+                  <div className="flex items-center gap-2.5">
+                    <span className="flex h-7 w-7 items-center justify-center rounded-full bg-cream text-xs font-bold text-ink">
+                      03
+                    </span>
+                    <span className="text-sm font-semibold text-cream">LaTeX Engine</span>
+                  </div>
+                  <span className="rounded-full bg-cream/15 px-2.5 py-0.5 text-xs font-medium text-cream">
+                    pdflatex compiled
+                  </span>
+                </div>
+                <h3 className="font-display text-xl font-bold text-white">Pixel-Perfect Jake's Resume PDF</h3>
+                <p className="mt-2 text-sm leading-relaxed text-cream/70">
+                  Built-in MiKTeX compiler creates dense, ATS-parsable formatting with exact margins, clean rules, and hyperlinked contacts.
+                </p>
+                <div className="mt-4 flex items-center justify-between rounded-xl bg-white/10 px-4 py-2.5 text-xs">
+                  <span>output/resume.pdf</span>
+                  <span className="text-emerald-400 font-semibold">Ready for download</span>
+                </div>
+              </div>
+            </InView>
+          </div>
         </div>
       </div>
     </section>
@@ -292,7 +447,7 @@ function Features() {
         />
         <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {features.map((f, i) => (
-            <Reveal key={f.title} delay={(i % 3) * 0.08} className="h-full">
+            <Reveal key={f.title} delay={(i % 3) * 0.07} from={i % 3 === 0 ? "left" : i % 3 === 1 ? "bottom" : "right"} className="h-full">
               <Card className="h-full p-7">
                 <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-accent text-white shadow-[0_10px_25px_-8px_rgb(255_106_43/0.7)]">
                   {f.icon}
@@ -325,51 +480,53 @@ function SampleOutput() {
           title="See what one run produces"
           sub="A preview of the deliverables from a single pipeline run — ready to edit, download and send."
         />
-        <Reveal className="mt-14">
-          <div className="grid overflow-hidden rounded-3xl border border-ink/8 bg-white shadow-soft lg:grid-cols-2">
+        <div className="mt-14 grid overflow-hidden rounded-3xl border border-ink/8 bg-white shadow-soft lg:grid-cols-2">
             {/* letter excerpt */}
-            <div className="border-b border-ink/8 bg-parchment/60 p-7 sm:p-9 lg:border-r lg:border-b-0">
-              <div className="mb-5 flex items-center justify-between gap-3">
-                <p className="text-sm font-semibold text-inksoft">Application for Frontend Engineer — Aarav Mehta</p>
-                <DemoBadge />
+            <Reveal from="left">
+              <div className="border-b border-ink/8 bg-parchment/60 p-7 sm:p-9 lg:border-r lg:border-b-0">
+                <div className="mb-5 flex items-center justify-between gap-3">
+                  <p className="text-sm font-semibold text-inksoft">Application for Frontend Engineer — Aarav Mehta</p>
+                  <DemoBadge />
+                </div>
+                <p className="text-[15px] font-medium">Dear Hiring Manager,</p>
+                <p className="mt-4 text-[15px] leading-relaxed text-inksoft">
+                  I am writing to apply for the Frontend Engineer role at Northwind Labs. With two years of experience
+                  building responsive React applications, I was excited to see an opening that values clean interfaces
+                  and thoughtful user experience.
+                </p>
+                <p className="mt-4 text-[15px] leading-relaxed text-inksoft">
+                  At Lumen Labs, I rebuilt the company&apos;s marketing site and internal dashboard using React,
+                  TypeScript, and Tailwind CSS, improving page load times by 34%.
+                </p>
+                <p className="mt-4 text-[15px] font-medium">— Aarav Mehta</p>
+                <p className="mt-5 text-xs text-inksoft/80">Sample output — full letter continues with 2 more paragraphs and 4 proofreading fixes.</p>
               </div>
-              <p className="text-[15px] font-medium">Dear Hiring Manager,</p>
-              <p className="mt-4 text-[15px] leading-relaxed text-inksoft">
-                I am writing to apply for the Frontend Engineer role at Northwind Labs. With two years of experience
-                building responsive React applications, I was excited to see an opening that values clean interfaces
-                and thoughtful user experience.
-              </p>
-              <p className="mt-4 text-[15px] leading-relaxed text-inksoft">
-                At Lumen Labs, I rebuilt the company&apos;s marketing site and internal dashboard using React,
-                TypeScript, and Tailwind CSS, improving page load times by 34%.
-              </p>
-              <p className="mt-4 text-[15px] font-medium">— Aarav Mehta</p>
-              <p className="mt-5 text-xs text-inksoft/80">Sample output — full letter continues with 2 more paragraphs and 4 proofreading fixes.</p>
-            </div>
+            </Reveal>
             {/* what you get */}
-            <div className="p-7 sm:p-9">
-              <h3 id="sample-heading" className="font-display text-2xl font-semibold">
-                What you get
-              </h3>
-              <ul className="mt-6 space-y-4">
-                {bullets.map((b) => (
-                  <li key={b} className="flex items-start gap-3 text-[16px]">
-                    <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-sage text-ink">
-                      <CheckIcon className="h-3.5 w-3.5" />
-                    </span>
-                    <span>{b}</span>
-                  </li>
-                ))}
-              </ul>
-              <Link
-                to="/app"
-                className="mt-8 inline-flex items-center gap-2 font-semibold text-accentdeep transition-transform hover:translate-x-1"
-              >
-                Try the live demo <span aria-hidden>→</span>
-              </Link>
-            </div>
-          </div>
-        </Reveal>
+            <Reveal from="right">
+              <div className="p-7 sm:p-9">
+                <h3 id="sample-heading" className="font-display text-2xl font-semibold">
+                  What you get
+                </h3>
+                <ul className="mt-6 space-y-4">
+                  {bullets.map((b) => (
+                    <li key={b} className="flex items-start gap-3 text-[16px]">
+                      <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-sage text-ink">
+                        <CheckIcon className="h-3.5 w-3.5" />
+                      </span>
+                      <span>{b}</span>
+                    </li>
+                  ))}
+                </ul>
+                <Link
+                  to="/app"
+                  className="mt-8 inline-flex items-center gap-2 font-semibold text-accentdeep transition-transform hover:translate-x-1"
+                >
+                  Try the live demo <span aria-hidden>→</span>
+                </Link>
+              </div>
+            </Reveal>
+        </div>
       </div>
     </section>
   );
@@ -388,7 +545,7 @@ function Testimonials() {
         />
         <div className="mt-14 grid gap-5 md:grid-cols-3">
           {testimonials.map((t, i) => (
-            <Reveal key={t.name} delay={i * 0.08} className="h-full">
+            <Reveal key={t.name} delay={i * 0.07} from={i % 3 === 0 ? "left" : i % 3 === 1 ? "bottom" : "right"} className="h-full">
               <Card className="flex h-full flex-col p-7">
                 <p className="font-display text-4xl text-accent" aria-hidden>
                   &ldquo;
@@ -432,7 +589,7 @@ function Pricing() {
           {pricingTiers.map((tier, i) => {
             const highlighted = tier.highlighted;
             return (
-              <Reveal key={tier.name} delay={i * 0.08} className="h-full">
+              <Reveal key={tier.name} delay={i * 0.07} from={i % 2 === 0 ? "left" : "right"} className="h-full">
                 <Card
                   className={`relative flex h-full flex-col p-8 ${
                     highlighted ? "!border-ink bg-ink text-cream shadow-soft" : ""
@@ -497,7 +654,7 @@ function Faq() {
           {faqs.map((faq, i) => {
             const open = openIndex === i;
             return (
-              <Reveal key={faq.q} delay={i * 0.05}>
+              <Reveal key={faq.q} delay={i * 0.04} from={i % 2 === 0 ? "left" : "right"}>
                 <div className={`overflow-hidden rounded-2xl border transition-colors ${open ? "border-ink/15 bg-white shadow-card" : "border-ink/8 bg-white/70"}`}>
                   <button
                     type="button"
@@ -588,6 +745,7 @@ export default function Landing() {
         <Hero />
         <StatsStrip />
         <HowItWorks />
+        <InViewInteractiveShowcase />
         <Features />
         <SampleOutput />
         <Testimonials />

@@ -107,8 +107,15 @@
 %-----------EDUCATION-----------
 \section{Education}
   \resumeSubHeadingListStart
-    {% for item in content.education_section %}
-      \resumeItem{ {{ item }} }
+    {% for edu in content.education_section %}
+      \resumeSubheading
+        { {{ edu.institution }} }{ {{ edu.location or '' }} }
+        { {{ edu.degree }} }{ {{ edu.date or '' }} }
+      {% if edu.details %}
+        \resumeItemListStart
+          \resumeItem{ {{ edu.details }} }
+        \resumeItemListEnd
+      {% endif %}
     {% endfor %}
   \resumeSubHeadingListEnd
 {% endif %}
@@ -117,8 +124,35 @@
 %-----------EXPERIENCE-----------
 \section{Experience}
   \resumeSubHeadingListStart
-    {% for item in content.experience_section %}
-      \resumeItem{ {{ item }} }
+    {% for exp in content.experience_section %}
+      \resumeSubheading
+        { {{ exp.role }} }{ {{ exp.date or '' }} }
+        { {{ exp.company }} }{ {{ exp.location or '' }} }
+      {% if exp.bullets and exp.bullets|length > 0 %}
+        \resumeItemListStart
+          {% for bullet in exp.bullets %}
+            \resumeItem{ {{ bullet }} }
+          {% endfor %}
+        \resumeItemListEnd
+      {% endif %}
+    {% endfor %}
+  \resumeSubHeadingListEnd
+{% endif %}
+
+{% if content.projects_section and content.projects_section|length > 0 %}
+%-----------PROJECTS-----------
+\section{Projects}
+  \resumeSubHeadingListStart
+    {% for proj in content.projects_section %}
+      \resumeProjectHeading
+        {\textbf{ {{ proj.name }} }{% if proj.technologies %} $|$ \emph{ {{ proj.technologies }} }{% endif %}}{ {{ proj.date or '' }} }
+      {% if proj.bullets and proj.bullets|length > 0 %}
+        \resumeItemListStart
+          {% for bullet in proj.bullets %}
+            \resumeItem{ {{ bullet }} }
+          {% endfor %}
+        \resumeItemListEnd
+      {% endif %}
     {% endfor %}
   \resumeSubHeadingListEnd
 {% endif %}

@@ -119,7 +119,7 @@ function EditToggle({
 
   /* ------------------------------ Contact ----------------------------- */
 
-  const setContact = (k: keyof CandidateProfile["contact"], v: string | string[]) =>
+  const setContact = (k: keyof CandidateProfile["personal_info"], v: string | string[]) =>
     patch({ personal_info: { ...profile.personal_info, [k]: v } });
 
   const contactFields: { key: "name" | "email" | "phone" | "location"; label: string }[] = [

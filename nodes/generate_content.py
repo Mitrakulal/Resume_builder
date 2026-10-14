@@ -29,13 +29,21 @@ async def generate_content(state):
     
     structured_model = model.with_structured_output(ResumeContent)
     prompt = f"""
-    You are an expert resume generator. Your task is to extract information from the CANDIDATE PROFILE and format it into the output schema.
-    
-    CRITICAL RULES:
-    1. EXCLUDE ENTIRELY any jobs, skills, or certifications from the candidate profile that are completely unrelated to the job requirements.
-    2. NEVER invent, hallucinate, or add new skills (like AWS) if they are not explicitly listed in the CANDIDATE PROFILE.
-    3. NO PLACEHOLDERS: Do not write things like 'role_title_filtered'. Actually write the real job title, company, and description from the candidate profile.
-    4. Format each item in the experience_section list as a single string combining the role, company, dates, and description.
+    You are an expert resume writer. Your job is to transform the candidate's raw profile into an ATS-friendly, tailored resume matching the output schema.
+
+    CRITICAL INSTRUCTIONS:
+    1. GENERATE TAILORED BULLETS:
+       - The candidate profile contains raw descriptions, notes, and skills from their background.
+       - Do NOT copy the raw text directly. Rewrite and synthesize 2 to 4 concise, high-impact bullet points ('bullets') for each included experience and project.
+       - Tailor the phrasing, technologies, and achievements in each bullet to directly highlight relevance to the JOB REQUIREMENTS and MATCH RESULTS.
+       - Start each bullet point with a strong past-tense action verb (e.g., "Architected", "Engineered", "Implemented", "Optimized", "Integrated").
+    2. SELECTION & REFRAMING (NEVER LEAVE SECTIONS EMPTY):
+       - ALWAYS include the candidate's strongest work: ensure experience_section and projects_section each contain at least 1 to 2 entries.
+       - Even if past work is not an exact 1:1 match with the job's subfield, do NOT drop it. Instead, reframe transferable engineering skills (e.g. backend systems, C++/Python development, model deployment, latency optimization, architecture) to demonstrate strong engineering capability.
+    3. STRICT GROUNDING:
+       - Ground all achievements strictly in the candidate's actual background. Do not hallucinate unmentioned companies, degrees, or tools.
+    4. NO PLACEHOLDERS:
+       - Populate real values from the profile, never placeholders.
 
     JOB REQUIREMENTS:
     {jd_requirements.model_dump_json(indent=2)}
@@ -45,9 +53,8 @@ async def generate_content(state):
 
     MATCH RESULTS:
     {matched_items.model_dump_json(indent=2)}
-
-    Return the filtered and concise resume content matching the JSON schema.
     """
+
     resume_content = await structured_model.ainvoke(prompt)
 
     return {

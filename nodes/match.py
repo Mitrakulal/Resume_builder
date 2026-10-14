@@ -35,19 +35,21 @@ async def match(state):
 
     matched_experience = []
     for experience in candidate_profile.experience:
-        if not isinstance(experience, dict):
-            continue
+        if isinstance(experience, dict):
+            role = experience.get("role") or experience.get("title") or "Experience"
+            description = experience.get("description") or " ".join(experience.get("bullets", []))
+            experience_skills = experience.get("skills") or []
+        else:
+            role = getattr(experience, "role", "") or "Experience"
+            description = getattr(experience, "description", "") or " ".join(getattr(experience, "bullets", []))
+            experience_skills = getattr(experience, "skills", [])
 
-        role = experience.get("role") or experience.get("title") or "Experience"
-        description = experience.get("description") or ""
         summary = f"{role}: {description}".strip()
 
         if not summary:
             continue
 
-        experience_skills = experience.get("skills") or []
-
-        if any(normalize(skill) in jd_set for skill in experience_skills):
+        if any(normalize(skill) in jd_set for skill in experience_skills) or any(normalize(skill) in summary.lower() for skill in jd_skills):
             matched_experience.append(summary)
 
     total_skills = max(len(jd_set), 1)

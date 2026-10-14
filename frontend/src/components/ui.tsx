@@ -108,24 +108,35 @@ export function SectionHeading({
 
 /* ------------------------------- Reveal ------------------------------ */
 
+type RevealFrom = "bottom" | "left" | "right";
+
+type AnimTarget = { opacity: number; y?: number; x?: number; filter: string };
+
+const revealInitial: Record<RevealFrom, AnimTarget> = {
+  bottom: { opacity: 0, y: 36, filter: "blur(4px)" },
+  left:   { opacity: 0, x: -56, filter: "blur(4px)" },
+  right:  { opacity: 0, x:  56, filter: "blur(4px)" },
+};
+const revealAnimate: AnimTarget = { opacity: 1, y: 0, x: 0, filter: "blur(0px)" };
+
 export function Reveal({
   children,
   delay = 0,
   className = "",
-  y = 28,
+  from = "bottom",
 }: {
   children: ReactNode;
   delay?: number;
   className?: string;
-  y?: number;
+  from?: RevealFrom;
 }) {
   return (
     <motion.div
       className={className}
-      initial={{ opacity: 0, y }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-60px" }}
-      transition={{ duration: 0.65, delay, ease: [0.22, 1, 0.36, 1] }}
+      initial={revealInitial[from]}
+      whileInView={revealAnimate}
+      viewport={{ once: true, margin: "-80px" }}
+      transition={{ duration: 0.6, delay, ease: [0.22, 1, 0.36, 1] }}
     >
       {children}
     </motion.div>
