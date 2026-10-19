@@ -21,7 +21,7 @@ export default function NotFound() {
               Back home
             </ButtonLink>
             <ButtonLink to="/app" variant="outline" size="lg">
-              Open demo
+              Open workspace
             </ButtonLink>
           </div>
         </div>

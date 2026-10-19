@@ -1,16 +1,13 @@
 import { Link } from "react-router-dom";
 import { ButtonLink, Card, PageHeader, Reveal } from "../components/ui.tsx";
-import { useApp, statusColor } from "../store/AppContext.tsx";
-import { STATUS_LABELS, type Application, type ApplicationStatus } from "../data/demo.ts";
-
-/* Map a status onto a 0–5 stage indicator. */
-const STAGE_INDEX: Record<ApplicationStatus, number> = {
-  draft: 0,
-  pipeline: 2,
-  matched: 3,
-  letter: 4,
-  ready: 5,
-};
+import { PIPELINE_STAGES } from "../lib/pipeline.ts";
+import {
+  applicationCompany,
+  applicationRole,
+  STATUS_LABELS,
+  type Application,
+} from "../lib/types.ts";
+import { statusColor, useApp } from "../store/AppContext.tsx";
 
 function daypartFor(hour: number): string {
   if (hour < 12) return "morning";
@@ -40,39 +37,60 @@ interface ActivityItem {
 
 export default function Dashboard() {
   const { profile, applications } = useApp();
-  const firstName = profile.personal_info.name.split(" ")[0] ?? "there";
+  const firstName = profile?.personal_info.name.trim().split(/\s+/)[0] || "there";
   const daypart = daypartFor(new Date().getHours());
 
-  const avgScore =
-    applications.length > 0
-      ? Math.round(applications.reduce((sum, a) => sum + a.matchScore, 0) / applications.length)
-      : 0;
-  const lettersReady = applications.filter((a) => a.status === "ready").length;
-  const inPipeline = applications.filter((a) => a.status === "pipeline" || a.status === "draft").length;
+  const resumesReady = applications.filter((app) => app.status === "matched").length;
+  const inPipeline = applications.filter((app) => app.status === "pipeline").length;
+  const failed = applications.filter((app) => app.status === "failed").length;
 
   const latest: Application | undefined = applications[0];
 
   const activity: ActivityItem[] = applications
-    .flatMap((a) => {
+    .flatMap((app) => {
+      const title = applicationRole(app);
+      const company = applicationCompany(app);
+      const label = company ? `${title} at ${company}` : title;
       const items: ActivityItem[] = [
-        { key: `${a.id}-created`, text: `Created application for ${a.role} @ ${a.company}`, date: a.createdAt },
+        {
+          key: `${app.id}-created`,
+          text: `Started tailoring for ${label}`,
+          date: app.createdAt,
+        },
       ];
-      if (a.status !== "draft") {
+
+      if (app.status === "matched") {
         items.push({
-          key: `${a.id}-stage`,
-          text: `Reached stage: ${STATUS_LABELS[a.status]}`,
-          date: a.createdAt,
+          key: `${app.id}-ready`,
+          text: `Resume ready for ${label} — all ${PIPELINE_STAGES.length} stages complete`,
+          date: app.updatedAt,
+        });
+      } else if (app.status === "failed") {
+        items.push({
+          key: `${app.id}-failed`,
+          text: `Pipeline failed for ${label}`,
+          date: app.updatedAt,
+        });
+      } else if (app.completedNodes.length > 0) {
+        items.push({
+          key: `${app.id}-progress`,
+          text: `Pipeline progressed for ${label} — ${app.completedNodes.length}/${
+            PIPELINE_STAGES.length
+          } stages`,
+          date: app.updatedAt,
         });
       }
+
       return items;
     })
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     .slice(0, 6);
 
   return (
     <>
       <PageHeader
         title={`Good ${daypart}, ${firstName}`}
-        sub="Here's what's happening with your applications."
+        sub="Here's what's happening with your tailored resumes."
         actions={
           <ButtonLink to="/app/new" variant="primary">
             + New application
@@ -80,23 +98,21 @@ export default function Dashboard() {
         }
       />
 
-      {/* Stats */}
       <section aria-label="Application stats" className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <Reveal delay={0}>
           <StatCard value={String(applications.length)} label="Total applications" sub="All time" />
         </Reveal>
         <Reveal delay={0.06}>
-          <StatCard value={`${avgScore}%`} label="Avg match score" sub="Across all applications" />
+          <StatCard value={String(resumesReady)} label="Resumes ready" sub="Compiled PDFs" />
         </Reveal>
         <Reveal delay={0.12}>
-          <StatCard value={String(lettersReady)} label="Letters ready" sub="Ready to send" />
+          <StatCard value={String(inPipeline)} label="In pipeline" sub="Currently running" />
         </Reveal>
         <Reveal delay={0.18}>
-          <StatCard value={String(inPipeline)} label="In pipeline" sub="Drafts + running" />
+          <StatCard value={String(failed)} label="Needs attention" sub="Failed runs" />
         </Reveal>
       </section>
 
-      {/* Latest pipeline + quick actions */}
       <div className="mt-6 grid gap-4 lg:grid-cols-2">
         <Reveal delay={0.05}>
           <Card className="h-full p-6">
@@ -105,29 +121,59 @@ export default function Dashboard() {
               <div className="mt-4">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <p className="font-medium">
-                    {latest.role} <span className="text-inksoft">@ {latest.company}</span>
+                    {applicationRole(latest)}{" "}
+                    {applicationCompany(latest) && (
+                      <span className="text-inksoft">@ {applicationCompany(latest)}</span>
+                    )}
                   </p>
                   <span
-                    className={`rounded-full px-3 py-1 text-xs font-semibold ${statusColor(latest.status)}`}
+                    className={`rounded-full px-3 py-1 text-xs font-semibold ${statusColor(
+                      latest.status,
+                    )}`}
                   >
                     {STATUS_LABELS[latest.status]}
                   </span>
                 </div>
-                {/* 5-dot stage indicator */}
-                <div className="mt-4 flex items-center gap-2" aria-label={`Pipeline progress: ${STATUS_LABELS[latest.status]}`}>
-                  {Array.from({ length: 5 }, (_, i) => (
-                    <span
-                      key={i}
-                      className={`h-2.5 w-2.5 rounded-full ${i < STAGE_INDEX[latest.status] ? "bg-accent" : "bg-ink/10"}`}
-                      aria-hidden
-                    />
-                  ))}
+
+                <div
+                  className="mt-4 flex items-center gap-2"
+                  aria-label={`Pipeline progress: ${latest.completedNodes.length} of ${
+                    PIPELINE_STAGES.length
+                  } stages`}
+                >
+                  {PIPELINE_STAGES.map((stage, index) => {
+                    const filled =
+                      latest.status === "matched" || index < latest.completedNodes.length;
+                    const failedHere =
+                      latest.status === "failed" &&
+                      index === latest.completedNodes.length;
+                    return (
+                      <span
+                        key={stage.id}
+                        className={`h-2.5 w-2.5 rounded-full ${
+                          failedHere
+                            ? "bg-red-500"
+                            : filled
+                              ? "bg-accent"
+                              : "bg-ink/10"
+                        }`}
+                        aria-hidden
+                      />
+                    );
+                  })}
                 </div>
+                <p className="mt-2 text-xs text-inksoft">
+                  {latest.status === "matched"
+                    ? `${PIPELINE_STAGES.length} of ${PIPELINE_STAGES.length} stages complete`
+                    : `${latest.completedNodes.length} of ${PIPELINE_STAGES.length} stages complete`}
+                </p>
+
                 <Link
-                  to={latest.status === "letter" || latest.status === "ready" ? `/app/letter/${latest.id}` : `/app/match/${latest.id}`}
+                  to={`/app/match/${latest.id}`}
                   className="mt-5 inline-flex items-center gap-1.5 font-semibold text-accentdeep transition-colors hover:text-accent"
                 >
-                  Continue <span aria-hidden>→</span>
+                  {latest.status === "matched" ? "View resume" : "View progress"}{" "}
+                  <span aria-hidden>→</span>
                 </Link>
               </div>
             ) : (
@@ -143,7 +189,7 @@ export default function Dashboard() {
               {[
                 { to: "/app/new", label: "Start new application", desc: "Paste a JD and run the pipeline" },
                 { to: "/app/applications", label: "Review applications", desc: "Track every role you're chasing" },
-                { to: "/app/portfolio", label: "Update portfolio", desc: "Keep your proof points sharp" },
+                { to: "/app/portfolio", label: "Update portfolio", desc: "Keep your source profile sharp" },
               ].map((item) => (
                 <li key={item.to}>
                   <Link
@@ -154,7 +200,10 @@ export default function Dashboard() {
                       <span className="block font-medium">{item.label}</span>
                       <span className="block text-[13px] text-inksoft">{item.desc}</span>
                     </span>
-                    <span aria-hidden className="text-accentdeep transition-transform group-hover:translate-x-1">
+                    <span
+                      aria-hidden
+                      className="text-accentdeep transition-transform group-hover:translate-x-1"
+                    >
                       →
                     </span>
                   </Link>
@@ -165,18 +214,23 @@ export default function Dashboard() {
         </Reveal>
       </div>
 
-      {/* Recent activity */}
       <Reveal delay={0.05} className="mt-6">
         <Card className="p-6">
           <h2 className="font-display text-xl font-semibold">Recent activity</h2>
           {activity.length > 0 ? (
             <ul className="mt-4 space-y-0">
-              {activity.map((item, i) => (
+              {activity.map((item, index) => (
                 <li key={item.key} className="relative flex gap-4 pb-5 last:pb-0">
-                  {i < activity.length - 1 && (
-                    <span className="absolute top-5 left-[5px] h-full w-px bg-ink/10" aria-hidden />
+                  {index < activity.length - 1 && (
+                    <span
+                      className="absolute top-5 left-[5px] h-full w-px bg-ink/10"
+                      aria-hidden
+                    />
                   )}
-                  <span className="mt-1.5 h-[11px] w-[11px] shrink-0 rounded-full border-2 border-accent bg-cream" aria-hidden />
+                  <span
+                    className="mt-1.5 h-[11px] w-[11px] shrink-0 rounded-full border-2 border-accent bg-cream"
+                    aria-hidden
+                  />
                   <div className="flex flex-1 flex-wrap items-baseline justify-between gap-x-4">
                     <p className="text-[15px]">{item.text}</p>
                     <time className="text-[13px] text-inksoft">{formatDate(item.date)}</time>
@@ -185,7 +239,9 @@ export default function Dashboard() {
               ))}
             </ul>
           ) : (
-            <p className="mt-4 text-inksoft">Nothing here yet — your pipeline runs will show up here.</p>
+            <p className="mt-4 text-inksoft">
+              Nothing here yet — your pipeline runs will show up here.
+            </p>
           )}
         </Card>
       </Reveal>

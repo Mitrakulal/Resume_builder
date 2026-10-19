@@ -78,18 +78,3 @@ body {
   background-image: radial-gradient(rgb(28 23 18 / 0.1) 1px, transparent 1px);
   background-size: 22px 22px;
 }
-
-/* Proofread diff highlight */
-.diff-fix {
-  background: linear-gradient(transparent 55%, rgb(255 106 43 / 0.35) 55%);
-  border-bottom: 2px solid var(--color-accent);
-  border-radius: 2px;
-  padding: 0 1px;
-}
-.diff-orig {
-  background: rgb(224 78 18 / 0.12);
-  text-decoration: line-through;
-  text-decoration-color: var(--color-accentdeep);
-  border-radius: 2px;
-  padding: 0 1px;
-}

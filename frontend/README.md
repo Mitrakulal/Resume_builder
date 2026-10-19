@@ -1,84 +1,93 @@
-# Applywise — AI Job Application Assistant (Frontend)
+# Applywise — Resume Tailoring Frontend
 
-A complete, multi-page frontend for the **AI Job Application Assistant**: paste a job description, run it through a 5-stage pipeline (read JD → search portfolio → match skills → generate cover letter → proofread), and get a tailored, proofread cover letter grounded in your real experience.
+React frontend for the local **resume-agent** pipeline. Paste a job description, run the real six-node LangGraph workflow, watch progress over SSE, and open the compiled PDF.
 
-> **Demo mode:** this is frontend-only. The pipeline is simulated client-side with fictional sample data. No backend calls are made. Every screen carries a "Demo mode" badge.
+This is no longer demo mode: the app calls the FastAPI backend for the profile, starts real jobs, subscribes to real node events, and stores application history in the browser.
 
 ## Tech stack
 
-- **Vite 7** + **React 19** + **TypeScript** (strict)
-- **Tailwind CSS v4** (theme tokens in `src/index.css` via `@theme`)
-- **React Router v7** (multi-page routing)
-- **Framer Motion** (page transitions, scroll reveals, pipeline animation)
+- Vite 7 + React 19 + TypeScript (strict)
+- Tailwind CSS v4
+- React Router v7
+- Framer Motion
+- Lucide icons
 
 ## Run it
 
 ```bash
 npm install
-npm run dev      # → http://localhost:5173
-npm run build    # type-check + production build → dist/
-npm run preview  # preview the production build
+npm run dev      # http://localhost:5173
+npm run build    # type-check + production build
+npm run preview
 ```
 
-Requires Node 18+ and npm.
+The backend should be running at `http://127.0.0.1:8000` by default. Override it with `VITE_API_BASE_URL` (see `.env.example`) or from `/app/settings` (persisted in `localStorage`).
 
-## Pages / routes
+## Backend endpoints used
+
+| Endpoint | Purpose |
+|---|---|
+| `GET /api/profile` | Load `master_profile.json` |
+| `POST /api/profile` | Validate and save the profile |
+| `POST /api/tailor` | Start a job with `{ jd_text }` |
+| `GET /api/tailor/{job_id}/stream` | SSE node progress |
+| `GET /api/tailor/{job_id}/pdf` | Download the compiled PDF |
+| `GET /api/tailor/{job_id}/result` | **Planned backend endpoint.** The frontend client already calls it and renders `jd_requirements`, `matched_items` and `resume_content` when it exists. A 404 falls back to the locally stored JD and captured progress counts. |
+
+## Pipeline stages
+
+Node ids match `graph.py`:
+
+1. `read_jd` — extract title, skills, responsibilities, keywords
+2. `load_profile` — load the candidate profile
+3. `match` — deterministic skill match + gaps
+4. `generate_content` — LLM resume content
+5. `render` — fill the LaTeX template
+6. `compile` — run `pdflatex`
+
+`src/lib/pipeline.ts` is the single source for labels and ordering. `PipelineRunner` maps SSE `node_progress` events onto those stages; there are no client-side timers or fake progress.
+
+## Routes
 
 | Route | Page |
 |---|---|
-| `/` | Landing page — nav, hero with animated product mockup, stats, how-it-works (5 stages), features, sample output, testimonials, pricing teaser, FAQ, CTA, footer |
-| `/app` | Dashboard — greeting, stat cards, latest pipeline status, quick actions, recent activity |
-| `/app/new` | New application — JD input (paste text / upload PDF / from link), pick a sample JD, set target role, then **Run pipeline** with an animated 5-stage progress view |
-| `/app/match/:id` | Match results — extracted JD requirements (must-have / nice-to-have chips), skill relevance bars, strongest portfolio proof |
-| `/app/letter/:id` | Cover letter editor — tone presets (Professional / Friendly / Bold), editable letter, simulated regenerate, proofread toggle with inline grammar/tone diffs, download `.txt` |
-| `/app/portfolio` | Portfolio manager — edit contact, experience, projects, skills (client-side state) |
-| `/app/applications` | Applications history — status pills, match scores, per-row actions |
-| `/app/settings` | Settings — profile, preferences, backend/API config placeholders (UI only) |
+| `/` | Landing page |
+| `/app` | Dashboard with real saved applications |
+| `/app/new` | Start a real tailoring job |
+| `/app/match/:id` | Result page: real PDF, live counts, and full result data when the endpoint is available |
+| `/app/portfolio` | Edit the master profile |
+| `/app/applications` | Saved application history |
+| `/app/settings` | Backend URL, profile save, storage notes |
 
-## Project structure
+The old demo cover-letter route and its sample data were removed.
+
+## Persistence
+
+- **Profile:** `master_profile.json` through the backend.
+- **Applications:** `localStorage` key `applywise.applications.v2` (status, job id, submitted JD, captured counts, PDF URL, completed nodes).
+- **API base:** `localStorage` key `applywise.apiBase.v1`.
+- **Backend jobs:** in-memory in FastAPI; lost on restart.
+
+## Structure
 
 ```
 src/
-├── main.tsx              # entry: BrowserRouter + AppProvider
-├── App.tsx               # route table + scroll-to-top + page transitions
-├── index.css             # Tailwind v4 theme (cream/peach/ink/accent tokens), fonts, diff styles
-├── components/
-│   ├── ui.tsx            # Button, Card, Chip, SectionHeading, Reveal, PageHeader, DemoBadge, EmptyState
-│   ├── layout.tsx        # Logo, Navbar, Footer, AppShell (sidebar layout for /app)
-│   ├── PipelineRunner.tsx# animated 5-stage pipeline simulation
-│   ├── ScoreRing.tsx     # animated match-score ring
-│   ├── MatchBar.tsx      # animated skill relevance bar
-│   └── DiffView.tsx      # proofread inline diffs + suggestion list
-├── pages/                # one file per route (see table above)
-├── data/
-│   └── demo.ts           # ★ all demo content: candidate profile, 3 sample JDs,
-│                         #   per-JD match data, 9 cover letters (3 JDs × 3 tones)
-│                         #   with proofread corrections, applications, testimonials, FAQs
-├── lib/
-│   └── pipeline.ts       # 5-stage pipeline definition + demo timings
-├── hooks/
-│   └── useTypewriter.ts  # typewriter effect hook
-└── store/
-    └── AppContext.tsx    # in-memory app state: profile, applications, tone
+  lib/api.ts          # centralized API client, base URL, errors
+  lib/types.ts        # profile, application, result and backend schema types
+  lib/pipeline.ts     # six-node pipeline definition + event types
+  store/AppContext.tsx# profile loading, application persistence
+  components/
+    PipelineRunner.tsx# real SSE subscription and stage UI
+    ScoreRing.tsx
+  pages/              # Landing, Dashboard, NewApplication, MatchResults,
+                      # Portfolio, Applications, Settings, NotFound
+  data/marketing.ts   # landing-page FAQ copy
 ```
 
-## Where the real backend plugs in
+## Known limitations
 
-The UI is structured so each simulated step maps 1:1 to a backend call:
-
-| Frontend (demo) | Production equivalent |
-|---|---|
-| `PipelineRunner` stage timers (`src/lib/pipeline.ts`) | `POST /v1/pipeline/run` — LangGraph graph streaming stage events over SSE/WebSocket |
-| `matchData` in `src/data/demo.ts` | `Read JD` + `Load Profile` + `Match` nodes → `jd_requirements`, `matched_items` |
-| `letterBodies` in `src/data/demo.ts` | `Generate Content` node (cloud model) → `resume_content` / letter draft |
-| `corrections` in `src/data/demo.ts` | Proofread node → structured grammar/tone suggestions |
-| `AppContext` in-memory state | `GET/POST /v1/applications`, `GET/PATCH /v1/portfolio` |
-| Settings → API base URL field | Point the fetch layer at the LangGraph server (default `http://localhost:8000`) |
-
-To go live: add a small `src/lib/api.ts` fetch client, replace the `PipelineRunner` timers with an event-source subscription, and swap the `demo.ts` lookups for API responses. Component props already mirror the backend schemas (`jd_requirements`, `matched_items`, `resume_content`).
-
-## Design notes
-
-- Warm cream/peach SaaS aesthetic (`#faf6f0` base, `#ff6a2b` accent), Fraunces display serif + Inter body.
-- Fully responsive (mobile nav, stacking grids) and accessible (semantic landmarks, labeled inputs, focus-visible rings, `aria-pressed`/`aria-checked` on toggles, `prefers-reduced-motion`-friendly Framer Motion defaults).
-- The trust principle is a first-class UI element: "never invents experience" appears in the hero, pipeline, letter footer, and FAQ.
+- The backend does not expose `/result` yet, so detailed JD/match/resume sections only render once that endpoint is added.
+- The backend currently streams limited `details` fields and uses field names that do not match the schemas, so counts can be missing or zero.
+- Backend jobs and SSE queues are in-memory and single-consumer; reloading mid-run can miss events.
+- The PDF endpoint currently falls back to `output/resume.pdf` for unknown jobs. Removing that fallback is a backend fix.
+- No automated tests or CI are configured yet.

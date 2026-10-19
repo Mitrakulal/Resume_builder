@@ -1,62 +1,90 @@
-import { useRef, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
-import { Button, Card, DemoBadge, PageHeader } from "../components/ui.tsx";
+import { useEffect, useState } from "react";
+import { Button, Card, PageHeader } from "../components/ui.tsx";
+import { errorMessage, getApiBase, resetApiBase, setApiBase } from "../lib/api.ts";
 import { useApp } from "../store/AppContext.tsx";
 
 const inputCls =
   "w-full rounded-2xl border border-ink/15 bg-cream px-4 py-2.5 text-[15px] outline-none focus:border-accent";
 
-function Switch({
-  label,
-  checked,
-  onChange,
-}: {
-  label: string;
-  checked: boolean;
-  onChange: (v: boolean) => void;
-}) {
-  return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={checked}
-      aria-label={label}
-      onClick={() => onChange(!checked)}
-      className="flex w-full cursor-pointer items-center justify-between gap-4 py-2 text-left"
-    >
-      <span className="font-medium text-ink">{label}</span>
-      <span
-        className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${
-          checked ? "bg-accent" : "bg-ink/15"
-        }`}
-      >
-        <motion.span
-          className="absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow"
-          animate={{ x: checked ? 20 : 0 }}
-          transition={{ type: "spring", stiffness: 500, damping: 32 }}
-        />
-      </span>
-    </button>
-  );
-}
-
 export default function Settings() {
-  const { profile, updateProfile } = useApp();
+  const {
+    profile,
+    updateProfile,
+    saveProfileToBackend,
+    isLoadingProfile,
+    profileError,
+    reloadProfile,
+  } = useApp();
 
-  const [emailNotifs, setEmailNotifs] = useState(true);
-  const [weeklyDigest, setWeeklyDigest] = useState(false);
-  const [portfolioPublic, setPortfolioPublic] = useState(false);
-  const [modelTier, setModelTier] = useState<"local" | "cloud">("local");
-  const [saved, setSaved] = useState(false);
-  const savedTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [apiBaseValue, setApiBaseValue] = useState(getApiBase);
+  const [status, setStatus] = useState<string | null>(null);
+  const [savingProfile, setSavingProfile] = useState(false);
 
-  const setContact = (k: "name" | "email" | "phone" | "location", v: string) =>
-    updateProfile({ personal_info: { ...profile.personal_info, [k]: v } });
+  useEffect(() => {
+    if (!status) return;
+    const timer = setTimeout(() => setStatus(null), 6000);
+    return () => clearTimeout(timer);
+  }, [status]);
 
-  const save = () => {
-    if (savedTimeout.current) clearTimeout(savedTimeout.current);
-    setSaved(true);
-    savedTimeout.current = setTimeout(() => setSaved(false), 2500);
+  if (isLoadingProfile) {
+    return (
+      <div className="flex h-64 items-center justify-center text-inksoft">
+        <div className="flex items-center gap-3">
+          <div className="h-5 w-5 animate-spin rounded-full border-2 border-accent border-t-transparent" />
+          <span>Loading profile from backend...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
+        <Card className="p-8 text-center">
+          <h1 className="font-display text-2xl font-semibold">Could not load your profile</h1>
+          <p className="mx-auto mt-3 max-w-lg text-inksoft">
+            {profileError ?? "The backend did not return master_profile.json."}
+          </p>
+          <Button className="mt-6" onClick={() => void reloadProfile()}>
+            Retry
+          </Button>
+        </Card>
+      </div>
+    );
+  }
+
+  const setContact = (key: "name" | "email" | "phone" | "location", value: string) =>
+    updateProfile({ personal_info: { ...profile.personal_info, [key]: value } });
+
+  const saveProfile = async () => {
+    setSavingProfile(true);
+    setStatus(null);
+    try {
+      await saveProfileToBackend();
+      setStatus("Profile saved to master_profile.json.");
+    } catch (error) {
+      setStatus(`Could not save profile: ${errorMessage(error)}`);
+    } finally {
+      setSavingProfile(false);
+    }
+  };
+
+  const saveApiUrl = (reload: boolean) => {
+    try {
+      const normalized = setApiBase(apiBaseValue);
+      setApiBaseValue(normalized);
+      setStatus("API URL saved for this browser.");
+      if (reload) window.location.reload();
+    } catch (error) {
+      setStatus(errorMessage(error));
+    }
+  };
+
+  const resetApiUrl = () => {
+    resetApiBase();
+    const normalized = getApiBase();
+    setApiBaseValue(normalized);
+    setStatus("API URL reset to the default.");
   };
 
   const contactFields: { key: "name" | "email" | "phone" | "location"; label: string }[] = [
@@ -68,11 +96,33 @@ export default function Settings() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
-      <PageHeader title="Settings" sub="Preferences and backend configuration." />
+      <PageHeader
+        title="Settings"
+        sub="Profile, backend connection and data storage for this workspace."
+      />
 
-      {/* Profile */}
+      {status && (
+        <div
+          role="status"
+          className="mb-5 rounded-2xl border border-ink/10 bg-peach/60 px-4 py-3 text-sm text-ink"
+        >
+          {status}
+        </div>
+      )}
+
       <Card className="mb-6 p-6 sm:p-8">
-        <h2 className="font-display mb-5 text-xl font-semibold">Profile</h2>
+        <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className="font-display text-xl font-semibold">Profile</h2>
+            <p className="mt-1 text-sm text-inksoft">
+              Saved to <code>master_profile.json</code> by the FastAPI backend.
+            </p>
+          </div>
+          <Button onClick={saveProfile} disabled={savingProfile}>
+            {savingProfile ? "Saving…" : "Save profile"}
+          </Button>
+        </div>
+
         <div className="grid gap-4 sm:grid-cols-2">
           {contactFields.map(({ key, label }) => (
             <div key={key}>
@@ -84,9 +134,9 @@ export default function Settings() {
               </label>
               <input
                 id={`settings-${key}`}
-                type="text"
-                value={profile.personal_info[key]}
-                onChange={(e) => setContact(key, e.target.value)}
+                type={key === "email" ? "email" : "text"}
+                value={profile.personal_info[key] ?? ""}
+                onChange={(event) => setContact(key, event.target.value)}
                 className={inputCls}
               />
             </div>
@@ -94,116 +144,84 @@ export default function Settings() {
         </div>
       </Card>
 
-      {/* Preferences */}
       <Card className="mb-6 p-6 sm:p-8">
-        <h2 className="font-display mb-3 text-xl font-semibold">Preferences</h2>
-        <div className="divide-y divide-ink/8">
-          <Switch label="Email notifications" checked={emailNotifs} onChange={setEmailNotifs} />
-          <Switch label="Weekly digest" checked={weeklyDigest} onChange={setWeeklyDigest} />
-          <Switch
-            label="Make portfolio public"
-            checked={portfolioPublic}
-            onChange={setPortfolioPublic}
-          />
-        </div>
-      </Card>
+        <h2 className="font-display text-xl font-semibold">Backend connection</h2>
+        <p className="mt-1 text-sm text-inksoft">
+          The frontend calls this URL for the profile, pipeline stream and PDF.
+        </p>
 
-      {/* Backend */}
-      <Card className="mb-6 p-6 sm:p-8">
-        <div className="mb-5 flex flex-wrap items-center gap-3">
-          <h2 className="font-display text-xl font-semibold">Backend</h2>
-          <DemoBadge />
-          <span className="text-xs text-inksoft">UI only</span>
-        </div>
-
-        <div className="mb-6">
+        <div className="mt-5">
           <label htmlFor="api-base" className="mb-1.5 block text-sm font-semibold text-ink">
             API base URL
           </label>
           <input
             id="api-base"
-            type="text"
-            defaultValue="http://localhost:8000"
+            type="url"
+            value={apiBaseValue}
+            onChange={(event) => setApiBaseValue(event.target.value)}
             className={inputCls}
+            placeholder="http://127.0.0.1:8000"
           />
+          <p className="mt-2 text-xs text-inksoft">
+            Stored in this browser. Use <strong>Save &amp; reload</strong> to reconnect the profile
+            and application links to the new backend.
+          </p>
         </div>
 
-        <fieldset>
-          <legend className="mb-3 text-sm font-semibold text-ink">Model tier</legend>
-          <div className="space-y-3">
-            <label
-              htmlFor="tier-local"
-              className={`flex cursor-pointer items-start gap-3 rounded-2xl border-2 p-4 transition-colors ${
-                modelTier === "local" ? "border-accent bg-peach/40" : "border-ink/10"
-              }`}
-            >
-              <input
-                id="tier-local"
-                type="radio"
-                name="model-tier"
-                value="local"
-                checked={modelTier === "local"}
-                onChange={() => setModelTier("local")}
-                className="mt-1 accent-accent"
-              />
-              <span>
-                <span className="font-semibold">Local (Qwen3 14B via Ollama)</span>
-                <span className="block text-sm text-inksoft">
-                  JD reading + matching stay on your machine.
-                </span>
-              </span>
-            </label>
-            <label
-              htmlFor="tier-cloud"
-              className={`flex cursor-pointer items-start gap-3 rounded-2xl border-2 p-4 transition-colors ${
-                modelTier === "cloud" ? "border-accent bg-peach/40" : "border-ink/10"
-              }`}
-            >
-              <input
-                id="tier-cloud"
-                type="radio"
-                name="model-tier"
-                value="cloud"
-                checked={modelTier === "cloud"}
-                onChange={() => setModelTier("cloud")}
-                className="mt-1 accent-accent"
-              />
-              <span>
-                <span className="font-semibold">Cloud</span>
-                <span className="block text-sm text-inksoft">
-                  Letter generation uses a stronger model.
-                </span>
-              </span>
-            </label>
-          </div>
-        </fieldset>
-
-        <div className="mt-6 rounded-2xl bg-peach p-5 text-[15px] leading-relaxed">
-          <p className="font-semibold">Where the backend plugs in</p>
-          <p className="mt-2 text-inksoft">
-            POST /v1/pipeline/run {"{ jd_text, profile }"} → streams the 5 stages; GET
-            /v1/applications; POST /v1/letters. This demo simulates all of it client-side.
-          </p>
+        <div className="mt-4 flex flex-wrap gap-3">
+          <Button size="sm" onClick={() => saveApiUrl(false)}>
+            Save URL
+          </Button>
+          <Button size="sm" variant="outline" onClick={() => saveApiUrl(true)}>
+            Save &amp; reload
+          </Button>
+          <Button size="sm" variant="ghost" onClick={resetApiUrl}>
+            Reset to default
+          </Button>
         </div>
       </Card>
 
-      <div className="flex items-center gap-4">
-        <Button onClick={save}>Save settings</Button>
-        <AnimatePresence>
-          {saved && (
-            <motion.span
-              key="saved"
-              initial={{ opacity: 0, x: -8 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0 }}
-              className="text-sm font-medium text-emerald-700"
-              role="status"
-            >
-              ✓ Saved (demo — no backend connected).
-            </motion.span>
-          )}
-        </AnimatePresence>
-      </div>
+      <Card className="mb-6 p-6 sm:p-8">
+        <h2 className="font-display text-xl font-semibold">Model configuration</h2>
+        <p className="mt-2 text-sm leading-relaxed text-inksoft">
+          Model selection is a backend setting. Set the model name and provider credentials in the
+          backend <code>.env</code>, then restart FastAPI. The current <code>match</code> node uses
+          deterministic skill comparison; the <code>generate_content</code> node uses the configured
+          LLM.
+        </p>
+      </Card>
+
+      <Card className="p-6 sm:p-8">
+        <h2 className="font-display text-xl font-semibold">Where data lives</h2>
+        <dl className="mt-4 space-y-3 text-sm">
+          <div className="flex flex-wrap justify-between gap-2">
+            <dt className="text-inksoft">Master profile</dt>
+            <dd className="font-medium">
+              <code>master_profile.json</code> (backend)
+            </dd>
+          </div>
+          <div className="flex flex-wrap justify-between gap-2">
+            <dt className="text-inksoft">Applications</dt>
+            <dd className="font-medium">
+              <code>localStorage</code> in this browser
+            </dd>
+          </div>
+          <div className="flex flex-wrap justify-between gap-2">
+            <dt className="text-inksoft">Resume PDF</dt>
+            <dd className="font-medium">
+              Job-specific endpoint on the backend
+            </dd>
+          </div>
+          <div className="flex flex-wrap justify-between gap-2">
+            <dt className="text-inksoft">Job state</dt>
+            <dd className="font-medium">In-memory on the FastAPI process</dd>
+          </div>
+        </dl>
+        <p className="mt-4 rounded-2xl bg-peach/60 px-4 py-3 text-[13px] leading-relaxed text-inksoft">
+          Applications survive a browser reload because they are stored locally. Backend jobs do
+          not survive a FastAPI restart yet.
+        </p>
+      </Card>
     </div>
   );
 }

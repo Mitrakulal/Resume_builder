@@ -161,8 +161,7 @@ export function PageHeader({
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
       >
-        <DemoBadge />
-        <h1 className="font-display mt-3 text-3xl font-semibold sm:text-4xl">{title}</h1>
+        <h1 className="font-display text-3xl font-semibold sm:text-4xl">{title}</h1>
         {sub && <p className="mt-2 max-w-xl text-inksoft">{sub}</p>}
       </motion.div>
       {actions && <div className="flex flex-wrap gap-3">{actions}</div>}
@@ -170,19 +169,19 @@ export function PageHeader({
   );
 }
 
-/* ------------------------------ Demo badge --------------------------- */
+/* ----------------------------- Sample badge --------------------------- */
 
-export function DemoBadge() {
+export function SampleBadge() {
   return (
     <span
       className="inline-flex items-center gap-1.5 rounded-full border border-dashed border-accent/60 bg-peach/60 px-3 py-1 text-xs font-semibold tracking-wide text-accentdeep uppercase"
-      title="All data is fictional and everything runs locally in your browser."
+      title="Sample content used to illustrate the interface. The workspace itself runs on your profile."
     >
       <span className="relative flex h-2 w-2">
         <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-60" />
         <span className="relative inline-flex h-2 w-2 rounded-full bg-accent" />
       </span>
-      Demo mode
+      Sample content
     </span>
   );
 }

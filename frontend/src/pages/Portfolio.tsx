@@ -6,7 +6,7 @@ import type {
   ExperienceItem,
   ProjectItem,
   EducationItem,
-} from "../data/demo.ts";
+} from "../lib/types.ts";
 import { Plus, Trash2, Edit3, Check, X, Download, Upload, Save } from "lucide-react";
 
 /* --------------------------- Local helpers --------------------------- */
@@ -62,7 +62,14 @@ function TextField({
 /* ------------------------------- Page -------------------------------- */
 
 export default function Portfolio() {
-  const { profile, updateProfile, saveProfileToBackend, isLoadingProfile } = useApp();
+  const {
+    profile,
+    updateProfile,
+    saveProfileToBackend,
+    isLoadingProfile,
+    profileError,
+    reloadProfile,
+  } = useApp();
 
   // Experience editing state
   const [editingExpIdx, setEditingExpIdx] = useState<number | null>(null);
@@ -85,6 +92,33 @@ export default function Portfolio() {
   const [newLink, setNewLink] = useState("");
   const [saveStatus, setSaveStatus] = useState<string | null>(null);
 
+  if (isLoadingProfile) {
+    return (
+      <div className="flex h-64 items-center justify-center text-inksoft">
+        <div className="flex items-center gap-3">
+          <div className="h-5 w-5 animate-spin rounded-full border-2 border-accent border-t-transparent" />
+          <span>Loading master profile from backend...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
+        <Card className="p-8 text-center">
+          <h1 className="font-display text-2xl font-semibold">Could not load your profile</h1>
+          <p className="mx-auto mt-3 max-w-lg text-inksoft">
+            {profileError ?? "The backend did not return master_profile.json."}
+          </p>
+          <Button className="mt-6" onClick={() => void reloadProfile()}>
+            Retry
+          </Button>
+        </Card>
+      </div>
+    );
+  }
+
   const patch = (p: Partial<CandidateProfile>) => updateProfile(p);
 
   const handleSaveToBackend = async () => {
@@ -93,9 +127,9 @@ export default function Portfolio() {
       await saveProfileToBackend();
       setSaveStatus("Saved to backend!");
       setTimeout(() => setSaveStatus(null), 3000);
-    } catch {
-      setSaveStatus("Failed to save");
-      setTimeout(() => setSaveStatus(null), 4000);
+    } catch (error) {
+      setSaveStatus(error instanceof Error ? `Failed: ${error.message}` : "Failed to save");
+      setTimeout(() => setSaveStatus(null), 6000);
     }
   };
 
@@ -297,17 +331,6 @@ export default function Portfolio() {
   const removeCert = (c: string) => {
     patch({ certifications: certsList.filter((x) => x !== c) });
   };
-
-  if (isLoadingProfile) {
-    return (
-      <div className="flex h-64 items-center justify-center text-inksoft">
-        <div className="flex items-center gap-3">
-          <div className="h-5 w-5 animate-spin rounded-full border-2 border-accent border-t-transparent" />
-          <span>Loading master profile from backend...</span>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6">

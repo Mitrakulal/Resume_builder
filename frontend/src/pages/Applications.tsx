@@ -1,48 +1,55 @@
-import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { ButtonLink, Card, EmptyState, PageHeader } from "../components/ui.tsx";
+import { api } from "../lib/api.ts";
+import {
+  applicationCompany,
+  applicationRole,
+  STATUS_LABELS,
+  type Application,
+} from "../lib/types.ts";
 import { statusColor, useApp } from "../store/AppContext.tsx";
-import { STATUS_LABELS } from "../data/demo.ts";
-import type { Application } from "../data/demo.ts";
 
-function MatchBar({ score }: { score: number }) {
-  return (
-    <div className="flex items-center gap-2">
-      <div className="h-2 w-24 overflow-hidden rounded-full bg-ink/8">
-        <motion.div
-          className="h-full rounded-full bg-accent"
-          initial={{ width: 0 }}
-          animate={{ width: `${score}%` }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
-        />
-      </div>
-      <span className="text-sm font-semibold">{score}%</span>
-    </div>
-  );
-}
-
-function ApplicationRow({ app }: { app: Application }) {
-  const { deleteApplication } = useApp();
-  const date = new Date(app.createdAt).toLocaleDateString("en-IN", {
+function formatDate(iso: string): string {
+  return new Date(iso).toLocaleDateString("en-IN", {
     day: "numeric",
     month: "short",
     year: "numeric",
   });
+}
+
+function matchLabel(app: Application): string {
+  const { matchedSkillsCount, missingSkillsCount } = app.summary;
+  if (typeof matchedSkillsCount === "number" && matchedSkillsCount > 0) {
+    return typeof missingSkillsCount === "number"
+      ? `${matchedSkillsCount} matched / ${missingSkillsCount} gaps`
+      : `${matchedSkillsCount} matched`;
+  }
+  if (typeof missingSkillsCount === "number" && missingSkillsCount > 0) {
+    return `${missingSkillsCount} gaps`;
+  }
+  return "Not reported";
+}
+
+function ApplicationRow({ app }: { app: Application }) {
+  const { deleteApplication } = useApp();
+  const title = applicationRole(app);
+  const company = applicationCompany(app);
+  const canDownload = app.status === "matched" || Boolean(app.pdfUrl);
 
   const handleDelete = () => {
-    if (window.confirm(`Delete the application for ${app.role} at ${app.company}?`)) {
+    const label = company ? `${title} at ${company}` : title;
+    if (window.confirm(`Delete the application for ${label}?`)) {
       deleteApplication(app.id);
     }
   };
 
   return (
-    <div className="border-b border-ink/8 px-4 py-4 last:border-0 sm:px-6 md:grid md:grid-cols-[2fr_1fr_1.4fr_1fr_1fr_auto] md:items-center md:gap-4">
-      {/* Role */}
+    <div className="border-b border-ink/8 px-4 py-4 last:border-0 sm:px-6 md:grid md:grid-cols-[2fr_1fr_1.3fr_1fr_auto] md:items-center md:gap-4">
       <div className="mb-2 md:mb-0">
-        <p className="font-semibold text-ink">{app.role}</p>
-        <p className="text-sm text-inksoft">{app.company}</p>
+        <p className="font-semibold text-ink">{title}</p>
+        <p className="text-sm text-inksoft">{company || "Company not specified"}</p>
       </div>
-      {/* Status */}
+
       <div className="mb-2 md:mb-0">
         <span
           className={`inline-block rounded-full px-3 py-1 text-xs font-semibold ${statusColor(app.status)}`}
@@ -50,22 +57,25 @@ function ApplicationRow({ app }: { app: Application }) {
           {STATUS_LABELS[app.status]}
         </span>
       </div>
-      {/* Match */}
-      <div className="mb-2 md:mb-0">
-        <MatchBar score={app.matchScore} />
-      </div>
-      {/* Date */}
-      <div className="mb-2 text-sm text-inksoft md:mb-0">{date}</div>
-      {/* Tone */}
-      <div className="mb-3 text-sm text-ink md:mb-0">{app.tone}</div>
-      {/* Actions */}
-      <div className="flex gap-3 text-sm font-semibold">
+
+      <div className="mb-2 text-sm text-inksoft md:mb-0">{matchLabel(app)}</div>
+
+      <div className="mb-2 text-sm text-inksoft md:mb-0">{formatDate(app.createdAt)}</div>
+
+      <div className="flex flex-wrap gap-3 text-sm font-semibold">
         <Link to={`/app/match/${app.id}`} className="text-accentdeep hover:underline">
-          Match
+          Results
         </Link>
-        <Link to={`/app/letter/${app.id}`} className="text-accentdeep hover:underline">
-          Letter
-        </Link>
+        {canDownload && (
+          <a
+            href={api.pdfUrl(app.jobId)}
+            target="_blank"
+            rel="noreferrer"
+            className="text-accentdeep hover:underline"
+          >
+            PDF
+          </a>
+        )}
         <button
           type="button"
           onClick={handleDelete}
@@ -85,7 +95,9 @@ export default function Applications() {
     <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
       <PageHeader
         title="Applications"
-        sub={`${applications.length} total · demo data`}
+        sub={`${applications.length} saved application${
+          applications.length === 1 ? "" : "s"
+        } · stored in this browser`}
         actions={
           <ButtonLink to="/app/new" size="sm">
             + New application
@@ -106,14 +118,13 @@ export default function Applications() {
       ) : (
         <Card className="overflow-hidden">
           <div
-            className="hidden border-b border-ink/10 bg-parchment/60 px-4 py-3 text-xs font-semibold tracking-wider text-inksoft uppercase sm:px-6 md:grid md:grid-cols-[2fr_1fr_1.4fr_1fr_1fr_auto] md:gap-4"
+            className="hidden border-b border-ink/10 bg-parchment/60 px-4 py-3 text-xs font-semibold tracking-wider text-inksoft uppercase sm:px-6 md:grid md:grid-cols-[2fr_1fr_1.3fr_1fr_auto] md:gap-4"
             aria-hidden
           >
             <span>Role</span>
             <span>Status</span>
-            <span>Match</span>
-            <span>Date</span>
-            <span>Tone</span>
+            <span>Match data</span>
+            <span>Created</span>
             <span>Actions</span>
           </div>
           {applications.map((app) => (

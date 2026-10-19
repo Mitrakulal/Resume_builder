@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { useApp } from "../store/AppContext.tsx";
-import { DemoBadge } from "./ui.tsx";
 
 /* -------------------------------- Logo ------------------------------- */
 
@@ -32,7 +31,7 @@ export function Logo({ dark = false }: { dark?: boolean }) {
 const navLinks = [
   { label: "How it works", href: "/#how-it-works" },
   { label: "Features", href: "/#features" },
-  { label: "Pricing", href: "/#pricing" },
+  { label: "Access", href: "/#pricing" },
   { label: "FAQ", href: "/#faq" },
 ];
 
@@ -67,13 +66,13 @@ export function Navbar() {
             to="/app"
             className="rounded-full border-2 border-ink/12 px-5 py-2.5 text-[15px] font-semibold transition-all hover:border-ink/30"
           >
-            Open demo
+            Open workspace
           </Link>
           <Link
             to="/app/new"
             className="rounded-full bg-accent px-5 py-2.5 text-[15px] font-semibold text-white shadow-[0_10px_25px_-8px_rgb(255_106_43/0.7)] transition-all hover:-translate-y-0.5 hover:bg-accentdeep"
           >
-            Try it free
+            Start tailoring
           </Link>
         </div>
         <button
@@ -111,7 +110,7 @@ export function Navbar() {
                 onClick={() => setOpen(false)}
                 className="mt-2 rounded-full bg-accent px-5 py-3 text-center font-semibold text-white"
               >
-                Try it free
+                Start tailoring
               </Link>
             </div>
           </motion.div>
@@ -130,12 +129,12 @@ export function Footer() {
       links: [
         { label: "How it works", href: "/#how-it-works" },
         { label: "Features", href: "/#features" },
-        { label: "Pricing", href: "/#pricing" },
-        { label: "Live demo", href: "/app" },
+        { label: "Access", href: "/#pricing" },
+        { label: "Workspace", href: "/app" },
       ],
     },
     {
-      title: "Demo app",
+      title: "Workspace",
       links: [
         { label: "New application", href: "/app/new" },
         { label: "Applications", href: "/app/applications" },
@@ -159,12 +158,9 @@ export function Footer() {
           <div>
             <Logo dark />
             <p className="mt-4 max-w-xs text-[15px] leading-relaxed text-cream/60">
-              Turn any job description into a tailored, proofread cover letter — grounded in your real experience, never
-              invented.
+              Turn a job description into a tailored resume PDF built from your master profile and
+              compiled by your local backend.
             </p>
-            <div className="mt-5">
-              <DemoBadge />
-            </div>
           </div>
           {cols.map((c) => (
             <nav key={c.title} aria-label={c.title}>
@@ -182,8 +178,8 @@ export function Footer() {
           ))}
         </div>
         <div className="mt-12 flex flex-col items-start justify-between gap-3 border-t border-cream/10 pt-8 text-sm text-cream/45 sm:flex-row sm:items-center">
-          <p>© 2026 Applywise. Demo build — all names, companies and metrics are fictional.</p>
-          <p>Built with React · Tailwind · Framer Motion</p>
+          <p>© 2026 Applywise. Sample content on this page is illustrative; the workspace uses your profile.</p>
+          <p>Built with React · Tailwind · FastAPI · LangGraph</p>
         </div>
       </div>
     </footer>
@@ -203,12 +199,14 @@ const shellNav = [
 export function AppShell() {
   const location = useLocation();
   const { profile } = useApp();
-  const initials = profile.personal_info.name
-    .split(" ")
-    .map((w) => w[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
+  const profileName = profile?.personal_info.name.trim() ?? "";
+  const initials =
+    profileName
+      .split(/\s+/)
+      .map((word) => word[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase() || "…";
 
   return (
     <div className="min-h-screen bg-cream lg:grid lg:grid-cols-[260px_1fr]">
@@ -236,9 +234,9 @@ export function AppShell() {
         </nav>
         <div className="p-4">
           <div className="rounded-2xl bg-peach p-4">
-            <p className="text-sm font-semibold">Demo mode</p>
+            <p className="text-sm font-semibold">Local workspace</p>
             <p className="mt-1 text-[13px] leading-snug text-inksoft">
-              Pipeline runs are simulated with sample data.
+              Profile lives in the backend. Applications are saved in this browser.
             </p>
           </div>
         </div>
@@ -252,7 +250,7 @@ export function AppShell() {
               <Logo />
             </div>
             <nav className="hidden items-center gap-1 lg:flex" aria-label="Breadcrumb">
-              <span className="text-sm text-inksoft">Applywise demo</span>
+              <span className="text-sm text-inksoft">Resume workspace</span>
             </nav>
             {/* Mobile nav */}
             <nav className="flex items-center gap-1 overflow-x-auto lg:hidden" aria-label="App">
@@ -272,10 +270,9 @@ export function AppShell() {
               ))}
             </nav>
             <div className="hidden items-center gap-3 sm:flex">
-              <DemoBadge />
               <div
                 className="flex h-10 w-10 items-center justify-center rounded-full bg-ink text-sm font-bold text-cream"
-                title={profile.personal_info.name}
+                title={profileName || "Profile loading"}
               >
                 {initials}
               </div>
